@@ -75,6 +75,18 @@ main.show {
     flex-direction: column;
 }
 
+.menu.methods-menu {
+    top: 35%;
+    left: 50%;
+    width: calc(100vw - 48px);
+    transform: translateX(-50%);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+}
+
 #btn {
  background: none;       
     border: none;           
@@ -85,7 +97,8 @@ main.show {
 }
 
 .menu li {
-    cursor: crosshair;
+    pointer-events: none;
+    cursor: default;
     color: #68fcfe;
     transition: 0.2s;
 }
@@ -93,7 +106,6 @@ main.show {
 .menu li.selected {
     color: #000;
     transform: scale(1.5) skewX(10deg) rotate(-10deg) !important;
-    opacity: 1 !important;
     position: relative;
     padding: 30px 0;
 }
