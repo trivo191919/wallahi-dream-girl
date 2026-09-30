@@ -15,7 +15,26 @@ const userLabel = document.querySelector('#user-label')
 const access = document.querySelector('#access-yes')
 
 const audio = new Audio('https://cdn.jsdelivr.net/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/sounds/menu.mp3')
-const bgMusic = new Audio('https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@4efef5bcae3171a949a1c46f58a8f8c07dfece1a/TOTOF.mp3')
+
+const MUSIC_OPTIONS = [
+    {
+        title: 'Threats Of The Ocean Sea',
+        description: 'Play Threats Of The Ocean Sea, DM DOKURO',
+        url: 'https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@latest/TOTOF.mp3',
+    },
+    {
+        title: 'Children Of The City',
+        description: 'Play Children Of The City, Mili',
+        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    },
+    {
+        title: 'Color Your Night',
+        description: 'Play Color Your Night, Genius',
+        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    },
+]
+
+const bgMusic = new Audio(MUSIC_OPTIONS[0].url)
 
 
 const USERS = [
@@ -139,6 +158,7 @@ const METHODS_LIST = [
 ]
 
 let currentList = 'main'
+let currentMusicIndex = 0
 let initiated = false
 let isLoggedIn = false
 let openMethodsAfterLogin = false
@@ -158,18 +178,23 @@ bgMusic.addEventListener('ended', () => bgMusic.play())
 function renderMenu(list, listName) {
     currentList = listName
     menu.classList.toggle('methods-menu', listName === 'methods')
-    menu.innerHTML = list.map((item, index) => `
+    menu.classList.toggle('music-menu', listName === 'music')
+    menu.innerHTML = list.map((item, index) => {
+        const isSelected = listName === 'music' ? index === currentMusicIndex : index === 0
+        return `
         <li style="transform: rotate(${item.rotation}); opacity: ${item.opacity};"
-            class="${index === 0 ? 'selected' : ''}"
+            class="${isSelected ? 'selected' : ''}"
             data-description="${item.description}">${item.title}</li>
-    `).join('')
+    `
+    }).join('')
     menu.querySelectorAll('li').forEach((item, index) => {
         item.animate(
             [{ opacity: 0 }, { opacity: list[index].opacity }],
             { duration: 450, delay: index * 130, easing: 'ease-out', fill: 'both' }
         )
     })
-    itemDescription.textContent = list[0]?.description || ''
+    const selectedIndex = listName === 'music' ? currentMusicIndex : 0
+    itemDescription.textContent = list[selectedIndex]?.description || ''
 }
 
 function insertListItens() {
@@ -194,6 +219,23 @@ function openSelectedMenuItem() {
         return
     }
 
+    if (currentList === 'main' && title === 'Themes') {
+        renderMenu(MUSIC_OPTIONS, 'music')
+        return
+    }
+
+    if (currentList === 'music') {
+        const musicIndex = MUSIC_OPTIONS.findIndex(track => track.title === title)
+        if (musicIndex !== -1) {
+            currentMusicIndex = musicIndex
+            bgMusic.src = MUSIC_OPTIONS[musicIndex].url
+            bgMusic.load()
+            bgMusic.play()
+            itemDescription.textContent = `Now playing: ${MUSIC_OPTIONS[musicIndex].title}`
+        }
+        return
+    }
+
     if (currentList !== 'main' || title !== 'Login') return
 
     openMethodsAfterLogin = false
@@ -211,7 +253,7 @@ function initMenuLinkOver() {
             return
         }
 
-        if (e.key === 'Escape' && currentList === 'methods') {
+        if (e.key === 'Escape' && (currentList === 'methods' || currentList === 'music')) {
             renderMenu(MENU_LINKS, 'main')
             return
         }
