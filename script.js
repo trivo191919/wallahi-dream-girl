@@ -25,12 +25,12 @@ const MUSIC_OPTIONS = [
     {
         title: 'Children Of The City',
         description: 'Play Children Of The City, Mili',
-        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        url: 'https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@latest/cotc.mp3',
     },
     {
         title: 'Color Your Night',
         description: 'Play Color Your Night, Genius',
-        url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+        url: 'https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@latest/cyn.mp3',
     },
 ]
 
