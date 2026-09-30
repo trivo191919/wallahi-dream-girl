@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -7,45 +6,57 @@
         <title>WAVE//V3</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://originfastly.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@65b1f5b8a7fe718ef3a0dbe6e203fb6f9526cf9b/style.css">
+        <link rel="stylesheet" href="style.css">
     </head>
     <body class="passion-one-bold">
         <div class="video-wrapper">
             <video muted id="video">
-                <source src="https://originfastly.jsdelivr.net/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-1.mp4" type="video/mp4">
+                <source src="https://cdn.jsdelivr.net/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-1.mp4" type="video/mp4">
             </video>
         </div>
         <div class="welcome-wrapper">
-            <h2>Welcome, To my soul society.</h2>
+           <img src="https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@06c41e8684ef8b138098354ab59120582577f6e1/wave.jpg">
+           <h2>WAVE//V3</h2>
+           <p>Tip: use your arrow keys and enter key</p>
         </div>
         <main class="main-content">
             <div class="money-box">
-                <h2>RANK: 0</h2>
-                <div class="label">you arent even ranking bro</div>
+                <h2 id="access-yes">RANK: 1</h2>
+                <div class="label" id="user-label">NAME: Random Kid</div>
             </div>
             <div class="menu-wrapper">
+                
                 <ul class="menu"></ul>
+
             </div>
+            <section class="login-panel" id="login-panel" aria-labelledby="login-title" hidden>
+                <form id="login-form">
+                    <h2 id="login-title">Login</h2>
+                    <label for="login-user">User</label>
+                    <input id="login-user" name="user" autocomplete="username" required>
+                    <label for="login-pass">Password</label>
+                    <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+                    <p class="login-message" id="login-message" role="status"></p>
+                    <div class="login-buttons">
+                        <button type="submit">Sign in</button>
+                        <button type="button" id="login-cancel">Cancel</button>
+                    </div>
+                </form>
+            </section>
             <div class="bottom-actions">
                 <div class="description-wrapper">
-                    <div class="item-description">development handled by VV</div>
+                    <div class="item-description">Now Playing Threats Of The Ocean Sea</div>
                     <div class="description-label">Wave//</div>
                 </div>
                 <div class="actions-wrapper">
-                    <div><span class="button">A</span> <span>Confirm</span></div>
-                    <div><span class="button">B</span> <span>Close</span></div>
+                    <div><span class="button">↑</span> <span>Up</span></div>
+                    <div><span class="button">↓ </span> <span>Down</span></div>
+                    <div><span class="button">⟳</span> <span>Go</span></div>
+
                 </div>
             </div>
         </main>
-        <script src="https://originfastly.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@2a6af33594375e545f444c3ba1dd810e66013480/script.js">
+        <script src="script.js">
         </script>
     </body>
 </html>
-
-
-
-
-
-
-
-
