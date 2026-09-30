@@ -117,7 +117,31 @@ const MENU_LINKS = [
     },
 ]
 
+const METHODS_LIST = [
+    {
+        title: 'Lucide',
+        description: 'wallahi dream site',
+        opacity: 1,
+        rotation: '-5deg',
+    },
+    {
+        title: 'pizza',
+        description: 'idiot cross site',
+        opacity: 0.8,
+        rotation: '5deg',
+    },
+    {
+        title: 'template',
+        description: 'template',
+        opacity: 0.6,
+        rotation: '-5deg',
+    },
+]
+
+let currentList = 'main'
 let initiated = false
+let isLoggedIn = false
+let openMethodsAfterLogin = false
 
 bgMusic.volume = 1
 
@@ -131,27 +155,48 @@ body.addEventListener('click', () => {
 
 bgMusic.addEventListener('ended', () => bgMusic.play())
 
-function insertListItens() {
-    const html = MENU_LINKS.reduce((acc, item, currentIndex) => {
-        let className = ''
-
-        if (currentIndex == 0) {
-            className = 'class="selected"'
-        } 
-
-        acc += `<li style="transform: rotate(${item.rotation}); opacity: ${item.opacity};" ${className} data-description="${item.description}">${item.title}</li>`
-
-        return acc
-    }, '')
-
-    menu.innerHTML = html
+function renderMenu(list, listName) {
+    currentList = listName
+    menu.classList.toggle('methods-menu', listName === 'methods')
+    menu.innerHTML = list.map((item, index) => `
+        <li style="transform: rotate(${item.rotation}); opacity: ${item.opacity};"
+            class="${index === 0 ? 'selected' : ''}"
+            data-description="${item.description}">${item.title}</li>
+    `).join('')
+    menu.querySelectorAll('li').forEach((item, index) => {
+        item.animate(
+            [{ opacity: 0 }, { opacity: list[index].opacity }],
+            { duration: 450, delay: index * 130, easing: 'ease-out', fill: 'both' }
+        )
+    })
+    itemDescription.textContent = list[0]?.description || ''
 }
 
+function insertListItens() {
+    renderMenu(MENU_LINKS, 'main')
+}
 
 function openSelectedMenuItem() {
     const selected = menu.querySelector('li.selected')
-    if (!selected || selected.textContent.trim() !== 'Login') return
+    if (!selected) return
 
+    const title = selected.textContent.trim()
+    if (currentList === 'main' && title === 'Methods') {
+        if (!isLoggedIn) {
+            openMethodsAfterLogin = true
+            loginForm.reset()
+            loginMessage.textContent = 'dude login first'
+            loginPanel.hidden = false
+            loginUser.focus()
+            return
+        }
+        renderMenu(METHODS_LIST, 'methods')
+        return
+    }
+
+    if (currentList !== 'main' || title !== 'Login') return
+
+    openMethodsAfterLogin = false
     loginMessage.textContent = ''
     loginForm.reset()
     loginPanel.hidden = false
@@ -159,22 +204,29 @@ function openSelectedMenuItem() {
 }
 
 function initMenuLinkOver() {
-    const items = menu.querySelectorAll('li')
-
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !loginPanel.hidden) {
             loginPanel.hidden = true
+            openMethodsAfterLogin = false
             return
         }
 
-        if (!loginPanel.hidden || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return
+        if (e.key === 'Escape' && currentList === 'methods') {
+            renderMenu(MENU_LINKS, 'main')
+            return
+        }
+
+        const horizontalKey = e.key === 'ArrowLeft' || e.key === 'ArrowRight'
+        const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
+        if (!loginPanel.hidden || (!horizontalKey && !verticalKey)) return
+        if (currentList === 'methods' ? !horizontalKey : !verticalKey) return
 
         e.preventDefault()
 
-        const selectedIndex = [...items].findIndex(item =>
-            item.classList.contains('selected')
-        )
-        const direction = e.key === 'ArrowDown' ? 1 : -1
+        const items = [...menu.querySelectorAll('li')]
+        const selectedIndex = items.findIndex(item => item.classList.contains('selected'))
+        const forward = e.key === 'ArrowDown' || e.key === 'ArrowRight'
+        const direction = forward ? 1 : -1
         const nextIndex = (selectedIndex + direction + items.length) % items.length
 
         items.forEach(item => item.classList.remove('selected'))
@@ -193,18 +245,9 @@ function initMenuLinkOver() {
         }
     })
  
-    menu.addEventListener('click', (e) => {
-        const item = e.target.closest('li')
-        if (!item) return
-
-        items.forEach(menuItem => menuItem.classList.remove('selected'))
-        item.classList.add('selected')
-        itemDescription.textContent = item.dataset.description || ''
-        if (item.textContent.trim() === 'Login') openSelectedMenuItem()
-    }) 
-
-    document.querySelector('#login-cancel').addEventListener('click', () => {
+     document.querySelector('#login-cancel').addEventListener('click', () => {
         loginPanel.hidden = true
+        openMethodsAfterLogin = false
     })
 
     loginForm.addEventListener('submit', (e) => {
@@ -221,10 +264,15 @@ function initMenuLinkOver() {
             return
         }
         
+        isLoggedIn = true
         access.textContent = `RANK: 5`
         userLabel.textContent = `NAME: ${user.nickname}`
         loginMessage.textContent = `get, ${user.nickname}!`
         loginPanel.hidden = true
+        if (openMethodsAfterLogin) {
+            openMethodsAfterLogin = false
+            renderMenu(METHODS_LIST, 'methods')
+        }
     })
 }
 
