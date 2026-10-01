@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WAVE//V3</title>
+        <style>
+            .source-setup {
+                position: fixed;
+                inset: 0;
+                z-index: 10;
+                display: grid;
+                place-items: center;
+                padding: 20px;
+                background: #101010eF;
+                font: 16px Arial, Helvetica, sans-serif;
+            }
+            .source-setup[hidden] { display: none; }
+            .source-setup form {
+                width: min(420px, 100%);
+                padding: 24px;
+                color: #111;
+                background: #fff;
+                border: 3px solid #000;
+                box-shadow: 8px 8px 0 #f00;
+            }
+            .source-setup h1 { margin: 0 0 8px; font-size: 26px; }
+            .source-setup p { margin: 0 0 18px; }
+            .source-setup label { display: block; margin: 14px 0 6px; font-weight: bold; }
+            .source-setup select, .source-setup button {
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #111;
+                background: #fff;
+                font: inherit;
+            }
+            .source-setup button { margin-top: 20px; cursor: pointer; }
+        </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    </head>
+    <body class="passion-one-bold">
+        <section class="source-setup" id="source-setup" aria-labelledby="source-setup-title">
+            <form id="source-setup-form">
+                <h1 id="source-setup-title">startup panel</h1>
+                <p>select accordingly or else it wont work</p>
+                <label for="welcome-source">wrapper</label>
+                <select id="welcome-source" required>
+                    <option value="" disabled selected>Select a source</option>
+                    <option value="https://originfastly.jsdelivr.net">https://originfastly.jsdelivr.net/</option>
+                    <option value="https://cdn.jsdelivr.net">https://cdn.jsdelivr.net/</option>
+                </select>
+                <label for="video-source">video wrapper</label>
+                <select id="video-source" required>
+                    <option value="" disabled selected>Select a source</option>
+                    <option value="https://originfastly.jsdelivr.net">https://originfastly.jsdelivr.net/</option>
+                    <option value="https://cdn.jsdelivr.net">https://cdn.jsdelivr.net/</option>
+                </select>
+                <div>pls select both of the same or else it wont work lol- vv</div>
+                <button type="submit">Continue</button>
+            </form>
+        </section>
+        <div class="video-wrapper">
+            <video muted id="video">
+                <source type="video/mp4">
+            </video>
+        </div>
+        <div class="welcome-wrapper">
+           <img alt="WAVE welcome artwork">
+           <h2>WAVE//V3</h2>
+           <p>Tip: use your up and down arrow keys and enter key</p>
+           <p>Made by the V Vo</p>
+        </div>
+        <main class="main-content">
+            <div class="money-box">
+                <h2 id="access-yes">RANK: 1</h2>
+                <div class="label" id="user-label">NAME: Random Kid</div>
+                <div>Version 3.7</div>
+            </div>
+            <div class="menu-wrapper">
+                
+                <ul class="menu"></ul>
+
+            </div>
+            <section class="login-panel" id="login-panel" aria-labelledby="login-title" hidden>
+                <form id="login-form">
+                    <h2 id="login-title">Login</h2>
+                    <label for="login-user">User</label>
+                    <input id="login-user" name="user" autocomplete="username" required>
+                    <label for="login-pass">Password</label>
+                    <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+                    <p class="login-message" id="login-message" role="status"></p>
+                    <div class="login-buttons">
+                        <button type="submit">Sign in</button>
+                        <button type="button" id="login-cancel">Cancel</button>
+                    </div>
+                </form>
+            </section>
+            <div class="bottom-actions">
+                <div class="description-wrapper">
+                    <div class="item-description">Now Playing Threats Of The Ocean Sea</div>
+                    <div class="description-label">Wave//</div>
+                </div>
+                <div class="actions-wrapper">
+                    <div><span class="button">↑</span> <span>Up</span></div>
+                    <div><span class="button">↓ </span> <span>Down</span></div>
+                    <div><span class="button">⟳</span> <span>Go</span></div>
+
+                </div>
+            </div>
+        </main>
+        <script>
+            const sourceSetup = document.querySelector('#source-setup')
+            const sourceSetupForm = document.querySelector('#source-setup-form')
+
+            sourceSetup.addEventListener('click', event => event.stopPropagation())
+            sourceSetupForm.addEventListener('submit', event => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                const welcomeBase = document.querySelector('#welcome-source').value
+                const videoBase = document.querySelector('#video-source').value
+                window.WAVE_WELCOME_SOURCE = welcomeBase
+                window.WAVE_VIDEO_SOURCE = videoBase
+                document.querySelector('.welcome-wrapper img').src =
+                    `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest/wave.jpg`
+                document.querySelector('#video source').src =
+                    `${videoBase}/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-1.mp4`
+                document.querySelector('#video').load()
+
+                const assetBase = `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest`
+                const stylesheet = document.createElement('link')
+                stylesheet.rel = 'stylesheet'
+                stylesheet.href = `${assetBase}/ss.css`
+                document.head.appendChild(stylesheet)
+
+                const appScript = document.createElement('script')
+                appScript.src = `${assetBase}/s.js`
+                document.body.appendChild(appScript)
+
+                sourceSetup.hidden = true
+            })
+        </script>
+    </body>
+</html>
