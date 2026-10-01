@@ -138,14 +138,14 @@ const MENU_LINKS = [
 
 const METHODS_LIST = [
     {
-        title: 'Lucide',
+        title: 'template',
         description: 'wallahi dream site',
         opacity: 1,
         rotation: '-5deg',
     },
     {
-        title: 'pizza',
-        description: 'idiot cross site',
+        title: 'template',
+        description: 'site',
         opacity: 0.8,
         rotation: '5deg',
     },
@@ -275,8 +275,8 @@ function initMenuLinkOver() {
         items[nextIndex].classList.add('selected')
         itemDescription.textContent = items[nextIndex].dataset.description || ''
 
-        audio.pause()
-        audio.currentTime = 0.04
+        audio.pause();
+        audio.currentTime = 0
         audio.play()
     })
 
