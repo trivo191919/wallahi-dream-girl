@@ -13,24 +13,33 @@ const loginPass = document.querySelector('#login-pass')
 const loginMessage = document.querySelector('#login-message')
 const userLabel = document.querySelector('#user-label')
 const access = document.querySelector('#access-yes')
+const welcomeAssetBase = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
+const videoAssetBase = `${window.WAVE_VIDEO_SOURCE}/gh/emanoelqueiroz/persona-3-menu@latest`
 
-const audio = new Audio('https://cdn.jsdelivr.net/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/sounds/menu.mp3')
+const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
 
+
+        
 const MUSIC_OPTIONS = [
     {
         title: 'Threats Of The Ocean Sea',
-        description: 'Play Threats Of The Ocean Sea, DM DOKURO',
-        url: 'https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@latest/TOTOF.mp3',
+        description: ':fear: 🔥🔥🔥',
+        url: `${welcomeAssetBase}/TOTOF.mp3`,
     },
     {
         title: 'Children Of The City',
-        description: 'Play Children Of The City, Mili',
-        url: 'https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@latest/cotc.mp3',
+        description: 'going through the shelves picking out my pre-written persona🔥🔥🔥🔥',
+        url: `${welcomeAssetBase}/cotc.mp3`,
     },
     {
         title: 'Color Your Night',
-        description: 'Play Color Your Night, Genius',
-        url: 'https://cdn.jsdelivr.net/gh/trivo191919/wallahi-dream-girl@latest/cyn.mp3',
+        description: 'two hands meet at zenith🔥🔥🔥',
+        url: `${welcomeAssetBase}/cyn.mp3`,
+    },
+    {
+        title: 'Crystallized',
+        description: 'my heart, my words, my self, my voices🔥🔥🔥🔥🔥',
+        url: `${welcomeAssetBase}/cyn.mp3`,
     },
 ]
 
@@ -73,24 +82,29 @@ const USERS = [
         pass: 'ihateboi',
         nickname: 'Mason boy',
     },
+    {
+        person: 'boi',
+        pass: 'emxv',
+        nickname: 'Mason boy',
+    },
 ]
 
 const MENU_LINKS = [
 {
         title: 'Methods',
-        description: 'Choose from a list',
+        description: 'methods of entertainments',
         opacity: 1,
         rotation: '-10deg',
     },
     {
         title: 'Settings',
-        description: 'Set your stuff up',
+        description: 'alter ur life',
         opacity: 0.8,
         rotation: '-5deg',
     },
     {
         title: 'Themes',
-        description: 'Choose your startup themes',
+        description: 'Choose your startup snongs',
         opacity: 0.6,
         rotation: '-10deg',
     },
@@ -108,7 +122,7 @@ const MENU_LINKS = [
     },
     {
         title: 'Talk',
-        description: 'Talk to others with a reworked UI',
+        description: 'Talk to others who uses WAVE',
         opacity: 0.6,
         rotation: '-5deg',
     },
@@ -198,7 +212,7 @@ function renderMenu(list, listName) {
 }
 
 function insertListItens() {
-    renderMenu(MENU_LINKS, 'main')
+    renderMenu(MENU_LINKS, 'main');
 }
 
 function openSelectedMenuItem() {
@@ -331,7 +345,7 @@ video.addEventListener('timeupdate', () => {
 })
 
 video.addEventListener('ended', () => {
-    videoWrapper.innerHTML = '<video autoplay muted loop id="video"><source src="https://cdn.jsdelivr.net/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-2.mp4" type="video/mp4"></video>';
+    videoWrapper.innerHTML = `<video autoplay muted loop id="video"><source src="${videoAssetBase}/videos/bg-video-2.mp4" type="video/mp4"></video>`;
 })
 
 insertListItens()
