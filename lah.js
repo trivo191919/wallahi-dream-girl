@@ -278,7 +278,8 @@ const METHODS_LIST = [
 
 //update log update here mihahaha
 const UPDATE_LOG = [
-    
+    { text: 'Vesion 3.7, fixed Themes, starting to work on methods, fixed bug where the music disc orbits around the red part, made startup panel supporting both CDNs', color: '#a8e6cf' },
+    { text: 'Vesion 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#a8e6cf' },
     { text: 'Vesion 3.5, added dependency check, I miss summit dude', color: '#a8e6cf' },
     { text: 'Version 3.4, accessible at school for you guys', color: '#d7b6ff' },
     { text: 'Vesion 3.3, added 4 songs', color: '#ffb6d9' },
