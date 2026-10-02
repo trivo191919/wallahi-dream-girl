@@ -130,12 +130,12 @@ main.show {
 }
 
 .menu.music-menu li {
-    position: relative;
+    position: absolute;
     z-index: 1;
     padding: 8px 12px;
     color: #fff;
     font: bold 18px Arial, Helvetica, sans-serif;
-    text-align: center;
+    text-align: right;
     text-shadow: 1px 2px #000;
     background: #111c;
 }
@@ -145,6 +145,7 @@ main.show {
     color: #fff;
     background: #d82020e8;
     transform: scale(1.06) !important;
+
 }
 
 .menu.music-menu li.selected::before,
