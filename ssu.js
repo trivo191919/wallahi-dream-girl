@@ -7,13 +7,15 @@ const welcomeWrapper = document.querySelector('.welcome-wrapper')
 const itemDescription = document.querySelector('.item-description')
 const main = document.querySelector('main')
 const loginPanel = document.querySelector('#login-panel')
+const updatesOverlay = document.querySelector('#updates-overlay')
+const updatesLog = document.querySelector('#updates-log')
 const loginForm = document.querySelector('#login-form')
 const loginUser = document.querySelector('#login-user')
 const loginPass = document.querySelector('#login-pass')
 const loginMessage = document.querySelector('#login-message')
 const userLabel = document.querySelector('#user-label')
 const access = document.querySelector('#access-yes')
-const welcomeAssetBase = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
+const trivoURLlink = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
 const videoAssetBase = `${window.WAVE_VIDEO_SOURCE}/gh/emanoelqueiroz/persona-3-menu@latest`
 
 const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
@@ -24,26 +26,44 @@ const MUSIC_OPTIONS = [
     {
         title: 'Threats Of The Ocean Sea',
         description: ':fear: 🔥🔥🔥',
-        url: `${welcomeAssetBase}/TOTOF.mp3`,
+        url: `${trivoURLlink}/TOTOF.mp3`,
     },
     {
         title: 'Children Of The City',
         description: 'going through the shelves picking out my pre-written persona🔥🔥🔥🔥',
-        url: `${welcomeAssetBase}/cotc.mp3`,
+        url: `${trivoURLlink}/cotc.mp3`,
     },
     {
         title: 'Color Your Night',
         description: 'two hands meet at zenith🔥🔥🔥',
-        url: `${welcomeAssetBase}/cyn.mp3`,
+        url: `${trivoURLlink}/cyn.mp3`,
     },
     {
         title: 'Crystallized',
         description: 'my heart, my words, my self, my voices🔥🔥🔥🔥🔥',
-        url: `${welcomeAssetBase}/crystal.mp3`,
+        url: `${trivoURLlink}/crystal.mp3`,
     },
 ]
 
 const bgMusic = new Audio(MUSIC_OPTIONS[0].url)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const USERS = [
@@ -88,6 +108,41 @@ const USERS = [
         nickname: 'emilio the _____',
     },
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const MENU_LINKS = [
 {
@@ -150,6 +205,26 @@ const MENU_LINKS = [
     },
 ]
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const METHODS_LIST = [
     {
         title: 'template',
@@ -167,9 +242,76 @@ const METHODS_LIST = [
         title: 'template',
         description: 'template',
         opacity: 0.6,
-        rotation: '-5deg',
+        rotation: '15deg',
     },
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//update log update here mihahaha
+const UPDATE_LOG = [
+    
+    
+    { text: 'Version 3.4, accessible at school for you guys', color: '#d7b6ff' },
+    { text: 'Vesion 3.3, added 4 songs', color: '#ffb6d9' },
+    { text: 'Vesion 3.2 Fixed the login page', color: '#a8e6cf' },
+    { text: 'Vesion 3.1, started on the site', color: '#ffe29a' },
+    
+    
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 let currentList = 'main'
 let currentMusicIndex = 0
@@ -195,8 +337,9 @@ function renderMenu(list, listName) {
     menu.classList.toggle('music-menu', listName === 'music')
     menu.innerHTML = list.map((item, index) => {
         const isSelected = listName === 'music' ? index === currentMusicIndex : index === 0
+        const rotation = listName === 'music' ? '' : `transform: rotate(${item.rotation});`
         return `
-        <li style="transform: rotate(${item.rotation}); opacity: ${item.opacity};"
+        <li style="${rotation} opacity: ${item.opacity};"
             class="${isSelected ? 'selected' : ''}"
             data-description="${item.description}">${item.title}</li>
     `
@@ -213,6 +356,29 @@ function renderMenu(list, listName) {
 
 function insertListItens() {
     renderMenu(MENU_LINKS, 'main');
+}
+
+function showUpdates() {
+    updatesLog.replaceChildren(...UPDATE_LOG.map(entry => {
+        const line = document.createElement('p')
+        line.textContent = entry.text
+        line.style.color = entry.color
+        return line
+    }))
+    menu.hidden = true
+    updatesOverlay.hidden = false
+    currentList = 'updates'
+    requestAnimationFrame(() => updatesOverlay.classList.add('visible'))
+}
+
+function closeUpdates() {
+    updatesOverlay.classList.remove('visible')
+    currentList = 'closing-updates'
+    setTimeout(() => {
+        updatesOverlay.hidden = true
+        menu.hidden = false
+        renderMenu(MENU_LINKS, 'main')
+    }, 250)
 }
 
 function openSelectedMenuItem() {
@@ -238,9 +404,14 @@ function openSelectedMenuItem() {
         return
     }
 
+    if (currentList === 'main' && title === 'Updates') {
+        showUpdates()
+        return
+    }
+
     if (currentList === 'music') {
         const musicIndex = MUSIC_OPTIONS.findIndex(track => track.title === title)
-        if (musicIndex !== -1) {2323444
+        if (musicIndex !== -1) {
             currentMusicIndex = musicIndex
             bgMusic.src = MUSIC_OPTIONS[musicIndex].url
             bgMusic.load()
@@ -267,10 +438,17 @@ function initMenuLinkOver() {
             return
         }
 
+        if (e.key === 'Escape' && currentList === 'updates') {
+            closeUpdates()
+            return
+        }
+
         if (e.key === 'Escape' && (currentList === 'methods' || currentList === 'music')) {
             renderMenu(MENU_LINKS, 'main')
             return
         }
+
+        if (currentList === 'updates') return
 
         const horizontalKey = e.key === 'ArrowLeft' || e.key === 'ArrowRight'
         const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
@@ -321,9 +499,9 @@ function initMenuLinkOver() {
         }
         
         isLoggedIn = true
-        access.textContent = `RANK: 5`
+        access.textContent = `Rank: 9`
         userLabel.textContent = `NAME: ${user.nickname}`
-        loginMessage.textContent = `get, ${user.nickname}!`
+        loginMessage.textContent = `get, ${user.nickname}`
         loginPanel.hidden = true
         if (openMethodsAfterLogin) {
             openMethodsAfterLogin = false
