@@ -442,12 +442,20 @@ function initMenuLinkOver() {
             closeUpdates()
             return
         }
-
+        
+        
+       if (e.key === 'Shift' && (currentList != 'main' )) {
+            closeUpdates()
+            renderMenu(MENU_LINKS, 'main')
+            return
+        }
+        /*
         if (e.key === 'Escape' && (currentList === 'methods' || currentList === 'music')) {
             renderMenu(MENU_LINKS, 'main')
             return
         }
-
+        ts vaulted so we dont keep ts
+*/
         if (currentList === 'updates') return
 
         const horizontalKey = e.key === 'ArrowLeft' || e.key === 'ArrowRight'
