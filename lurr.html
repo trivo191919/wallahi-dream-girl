@@ -69,20 +69,28 @@
         <div class="welcome-wrapper">
            <img alt="WAVE welcome artwork">
            <h2>WAVE//V3</h2>
-           <p>Tip: use your up and down arrow keys and enter key</p>
+           <p>"Face the fear, Build the future." -Lcorp</p>
            <p>Made by the V Vo</p>
         </div>
         <main class="main-content">
             <div class="money-box">
                 <h2 id="access-yes">RANK: 1</h2>
                 <div class="label" id="user-label">NAME: Random Kid</div>
-                <div>Version 3.9</div>
+                <div>Version 3.4</div>
+                <b style="font-size: 13px;">"The old days of chasing down shadows"</b>
             </div>
             <div class="menu-wrapper">
                 
                 <ul class="menu"></ul>
 
             </div>
+            <section class="updates-overlay" id="updates-overlay" aria-labelledby="updates-title" hidden>
+                <div class="updates-card">
+                    <h2 id="updates-title">Update log</h2>
+                    <div class="updates-log" id="updates-log"></div>
+                    <p class="updates-hint">press esc to escape this page</p>
+                </div>
+            </section>
             <section class="login-panel" id="login-panel" aria-labelledby="login-title" hidden>
                 <form id="login-form">
                     <h2 id="login-title">Login</h2>
@@ -105,7 +113,9 @@
                 <div class="actions-wrapper">
                     <div><span class="button">↑</span> <span>Up</span></div>
                     <div><span class="button">↓ </span> <span>Down</span></div>
-                    <div><span class="button">⟳</span> <span>Go</span></div>
+                    <div><span class="button">ENT</span> <span>Go</span></div>
+                    <div><span class="button">ESC</span> <span>exit</span></div>
+
 
                 </div>
             </div>
@@ -132,11 +142,11 @@
                 const assetBase = `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest`
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/sss.css`
+                stylesheet.href = `${assetBase}/ssu.css`
                 document.head.appendChild(stylesheet)
 
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/su.js`
+                appScript.src = `${assetBase}ssu.js`
                 document.body.appendChild(appScript)
 
                 sourceSetup.hidden = true
