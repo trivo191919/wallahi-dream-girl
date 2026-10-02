@@ -137,7 +137,7 @@ main.show {
     max-width: 42%;
     padding: 8px 12px;
     color: #fff;
-    font: bold 18px Arial, Helvetica, sans-serif;
+    font: bold 15px Arial, Helvetica, sans-serif;
     text-align: right;
     text-shadow: 1px 2px #000;
     background: #111c;
@@ -148,6 +148,7 @@ main.show {
 .menu.music-menu li:nth-child(2) { left: 36%; top: 38%; }
 .menu.music-menu li:nth-child(3) { left: 34%; top: 62%; }
 .menu.music-menu li:nth-child(4) { left: 40%; top: 85%; }
+.menu.music-menu li:nth-child(5) { left: 45%; top: 100%; }
 
 .menu.music-menu li.selected {
     padding: 8px 12px;
