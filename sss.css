@@ -130,7 +130,7 @@ main.show {
 }
 
 .menu.music-menu li {
-    position: absolute;
+    position: relative;
     z-index: 1;
     padding: 8px 12px;
     color: #fff;
