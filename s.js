@@ -39,7 +39,7 @@ const MUSIC_OPTIONS = [
     {
         title: 'Crystallized',
         description: 'my heart, my words, my self, my voices🔥🔥🔥🔥🔥',
-        url: `${welcomeAssetBase}/cyn.mp3`,
+        url: `${welcomeAssetBase}/crystal.mp3`,
     },
 ]
 
