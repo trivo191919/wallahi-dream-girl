@@ -162,7 +162,7 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/stu.css`
+                stylesheet.href = `${assetBase}/stun.css` //-------------Line of remembrance---------------\\
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
                     stylesheetStatus.textContent = 'styles.css: loaded'
@@ -172,9 +172,9 @@
                     stylesheetStatus.textContent = 'styles.css: failed to load, assuming its wrong thing'
                     finishLoading()
                 }
-
+ //                         ${assetBase}/           copy this for src for .JS and stupid css
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/lah.js`
+                appScript.src = `${assetBase}/lahu.js`   //-------------Line of remembrance---------------\\
                 appScript.onload = () => {
                     scriptLoaded = true
                     scriptStatus.textContent = 'script.js: loaded!!'
