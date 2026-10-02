@@ -279,7 +279,7 @@ const METHODS_LIST = [
 //update log update here mihahaha
 const UPDATE_LOG = [
     
-    
+    { text: 'Vesion 3.5, added dependency check, I miss summit dude', color: '#a8e6cf' },
     { text: 'Version 3.4, accessible at school for you guys', color: '#d7b6ff' },
     { text: 'Vesion 3.3, added 4 songs', color: '#ffb6d9' },
     { text: 'Vesion 3.2 Fixed the login page', color: '#a8e6cf' },
