@@ -83,9 +83,9 @@ const USERS = [
         nickname: 'Mason boy',
     },
     {
-        person: 'boi',
-        pass: 'emxv',
-        nickname: 'Mason boy',
+        person: 'emili',
+        pass: 'exv',
+        nickname: 'emilio the _____',
     },
 ]
 
@@ -143,8 +143,8 @@ const MENU_LINKS = [
     */
 
     {
-        title: 'Credits',
-        description: 'View Credits',
+        title: 'Updates',
+        description: 'View recent updates',
         opacity: 0.6,
         rotation: '-10deg',
     },
@@ -240,7 +240,7 @@ function openSelectedMenuItem() {
 
     if (currentList === 'music') {
         const musicIndex = MUSIC_OPTIONS.findIndex(track => track.title === title)
-        if (musicIndex !== -1) {
+        if (musicIndex !== -1) {2323444
             currentMusicIndex = musicIndex
             bgMusic.src = MUSIC_OPTIONS[musicIndex].url
             bgMusic.load()
