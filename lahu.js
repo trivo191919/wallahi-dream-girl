@@ -1,3 +1,40 @@
+
+//you will vanish into nothingness if you are looking at this message
+
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+//you will vanish into nothingness if you are looking at this message
+
+//you will vanish into nothingness if you are looking at this message
+
+
+
+
+
+
+
+
+
+
+
+
 const body = document.querySelector('body')
 const menuWrapper = document.querySelector('.menu-wrapper')
 const menu = menuWrapper.querySelector('.menu')
@@ -25,23 +62,28 @@ const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
 const MUSIC_OPTIONS = [
     {
         title: 'Threats Of The Ocean Sea',
-        description: ':fear: 🔥🔥🔥',
+        description: 'the song that causes paranoia in terraria calamity',
         url: `${trivoURLlink}/TOTOF.mp3`,
     },
     {
         title: 'Children Of The City',
-        description: 'going through the shelves picking out my pre-written persona🔥🔥🔥🔥',
+        description: 'Oh, its time for another vendetta.',
         url: `${trivoURLlink}/cotc.mp3`,
     },
     {
         title: 'Color Your Night',
-        description: 'two hands meet at zenith🔥🔥🔥',
+        description: 'Two hands meet at zenith',
         url: `${trivoURLlink}/cyn.mp3`,
     },
     {
         title: 'Crystallized',
-        description: 'my heart, my words, my self, my voices🔥🔥🔥🔥🔥',
+        description: 'My heart, my words, my self, my voices, my love!',
         url: `${trivoURLlink}/crystal.mp3`,
+    },
+    {
+        title: 'In Hell We live, Lament (INSTRUMENTAL)',
+        description: 'Lament, if you wanted to forgive!',
+        url: `${trivoURLlink}/lament.mp3`,
     },
 ]
 
@@ -143,9 +185,9 @@ const USERS = [
 
 
 
-
+// buttons for main screen i guess???
 const MENU_LINKS = [
-{
+    {
         title: 'Methods',
         description: 'methods of entertainments',
         opacity: 1,
@@ -224,7 +266,7 @@ const MENU_LINKS = [
 
 
 
-
+//slop list of games or something idk ill think about it later
 const METHODS_LIST = [
     {
         title: 'template',
@@ -455,8 +497,10 @@ function initMenuLinkOver() {
             renderMenu(MENU_LINKS, 'main')
             return
         }
-        ts vaulted so we dont keep ts
+        ts vaulted so we dont keep this unless i need the function lol
 */
+
+
         if (currentList === 'updates') return
 
         const horizontalKey = e.key === 'ArrowLeft' || e.key === 'ArrowRight'
