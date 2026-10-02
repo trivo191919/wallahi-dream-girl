@@ -11,11 +11,7 @@ body {
     transition: 0.4s;
 }
 
-.background {
-    background: url(bg/bg.jpg);
-    background-size: cover;
-    background-repeat: no-repeat;
-}
+
 
 .principal {
     color: #fff;
