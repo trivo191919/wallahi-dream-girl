@@ -162,26 +162,26 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/sssu.css`
+                stylesheet.href = `${assetBase}/st.css`
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
-                    stylesheetStatus.textContent = 'ssu.css: loaded'
+                    stylesheetStatus.textContent = 'styles.css: loaded'
                     finishLoading()
                 }
                 stylesheet.onerror = () => {
-                    stylesheetStatus.textContent = 'ssu.css: failed to load, assuming its wrong thing'
+                    stylesheetStatus.textContent = 'styles.css: failed to load, assuming its wrong thing'
                     finishLoading()
                 }
 
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/sssu.js`
+                appScript.src = `${assetBase}/la.js`
                 appScript.onload = () => {
                     scriptLoaded = true
-                    scriptStatus.textContent = 'ssu.js: loaded!!'
+                    scriptStatus.textContent = 'script.js: loaded!!'
                     finishLoading()
                 }
                 appScript.onerror = () => {
-                    scriptStatus.textContent = 'ssu.js: failed to load, assuming its the wrong thing too'
+                    scriptStatus.textContent = 'script.js: failed to load, assuming its the wrong thing too'
                     finishLoading()
                 }
 
