@@ -56,6 +56,7 @@
                     <option value="" disabled selected>Select a source</option>
                     <option value="https://originfastly.jsdelivr.net">https://originfastly.jsdelivr.net/</option>
                     <option value="https://cdn.jsdelivr.net">https://cdn.jsdelivr.net/</option>
+
                 </select>
                 <div>pls select both of the same or else it wont work lol- vv</div>
                 <div id="dependency-status" role="status" aria-live="polite" style="margin-top: 16px; line-height: 1.5;">
@@ -63,6 +64,7 @@
                     <div id="script-status">ssu.js: waiting</div>
                 </div>
                 <button type="submit">Load dependencies</button>
+                <p style="font-size:15px; text-align:center">"You met a terrible fate, havent you?""</p>
             </form>
         </section>
         <div class="video-wrapper">
@@ -92,7 +94,7 @@
                 <div class="updates-card">
                     <h2 id="updates-title">Update log</h2>
                     <div class="updates-log" id="updates-log"></div>
-                    <p class="updates-hint">press esc to escape this page</p>
+                    <p class="updates-hint">press esc or shift to exit this page</p>
                 </div>
             </section>
             <section class="login-panel" id="login-panel" aria-labelledby="login-title" hidden>
@@ -149,8 +151,13 @@
                 window.WAVE_VIDEO_SOURCE = videoBase
                 document.querySelector('.welcome-wrapper img').src =
                     `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest/wave.jpg`
+                
+
+
                 document.querySelector('#video source').src =
                     `${videoBase}/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-1.mp4`
+                
+                
                 document.querySelector('#video').load()
 
                 dependenciesStarted = true
@@ -162,7 +169,7 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/stun.css` //-------------Line of remembrance---------------\\
+                stylesheet.href = `stu.css` //-------------Line of remembrance---------------\\
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
                     stylesheetStatus.textContent = 'styles.css: loaded'
@@ -174,7 +181,7 @@
                 }
  //                         ${assetBase}/           copy this for src for .JS and stupid css
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/lahu.js`   //-------------Line of remembrance---------------\\
+                appScript.src = `lah.js`   //-------------Line of remembrance---------------\\
                 appScript.onload = () => {
                     scriptLoaded = true
                     scriptStatus.textContent = 'script.js: loaded!!'
