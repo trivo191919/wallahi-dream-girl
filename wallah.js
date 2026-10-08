@@ -60,9 +60,10 @@ const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
 
         
 const MUSIC_OPTIONS = [
+    //it goes from 0 1 2 3 4
     {
         title: 'Threats Of The Ocean Sea',
-        description: 'the song that causes paranoia in terraria calamity',
+        description: 'Primordial Wyrm as awakened!',
         url: `${trivoURLlink}/TOTOF.mp3`,
     },
     {
@@ -81,13 +82,13 @@ const MUSIC_OPTIONS = [
         url: `${trivoURLlink}/crystal.mp3`,
     },
     {
-        title: 'In Hell We live, Lament (INSTRUMENTAL)',
-        description: 'Lament, if you wanted to forgive!',
+        title: 'In Hell We live, Lament.',
+        description: 'Lament, if you wanted me to live!',
         url: `${trivoURLlink}/lament.mp3`,
     },
 ]
 
-const bgMusic = new Audio(MUSIC_OPTIONS[0].url)
+const bgMusic = new Audio(MUSIC_OPTIONS[3].url);
 
 
 
@@ -149,6 +150,12 @@ const USERS = [
         pass: 'exv',
         nickname: 'emilio the _____',
     },
+    {
+        person: 'andersonion',
+        pass: 'dingus',
+        nickname: 'anderdingus',
+    },
+    
 ]
 
 
@@ -230,14 +237,12 @@ const MENU_LINKS = [
         rotation: '-10deg',
     },
 
-    /* {
+    {
         title: 'Calendar',
-        description: 'View Calendar',
+        description: 'View the update schedules',
         opacity: 0.8,
         rotation: '-5deg',
     },
-    vaulted
-    */
 
     {
         title: 'Updates',
@@ -269,23 +274,40 @@ const MENU_LINKS = [
 //slop list of games or something idk ill think about it later
 const METHODS_LIST = [
     {
-        title: 'template',
-        description: 'wallahi dream site',
+        title: 'retro bowl',
+        description: 'wallahi dreams',
         opacity: 1,
         rotation: '-5deg',
+        fetcher: `${trivoURLlink}/RB.html`
     },
     {
-        title: 'template',
+        title: 'life',
+        description: 'life.',
+        opacity: 1,
+        rotation: '-2deg',
+        fetcher: `${trivoURLlink}/B.html`
+    }, //done
+    {
+        title: 'how to fish',
+        description: 'wallahi dream games',
+        opacity: 1,
+        rotation: '-5deg',
+        fetcher: `${trivoURLlink}/HTF.html`
+    },
+    {
+        title: 'lobotomy corportation',
         description: 'site',
         opacity: 0.8,
         rotation: '5deg',
+        fetcher: `${trivoURLlink}/LC.html`
     },
     {
-        title: 'template',
+        title: 'majora mask',
         description: 'template',
         opacity: 0.6,
         rotation: '15deg',
-    },
+        fetcher: `${trivoURLlink}/MM.html`
+    }, //done
 ]
 
 
@@ -320,13 +342,14 @@ const METHODS_LIST = [
 
 //update log update here mihahaha
 const UPDATE_LOG = [
+    { text: 'Vesion 3.8, changed it so you can use both "esc" and "shift" for exiting a page', color: '#ffb6d9' },
     { text: 'Vesion 3.7, fixed Themes, starting to work on methods, fixed bug where the music disc orbits around the red part, made startup panel supporting both CDNs', color: '#a8e6cf' },
-    { text: 'Vesion 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#a8e6cf' },
+    { text: 'Vesion 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#ffe29a' },
     { text: 'Vesion 3.5, added dependency check, I miss summit dude', color: '#a8e6cf' },
     { text: 'Version 3.4, accessible at school for you guys', color: '#d7b6ff' },
     { text: 'Vesion 3.3, added 4 songs', color: '#ffb6d9' },
     { text: 'Vesion 3.2 Fixed the login page', color: '#a8e6cf' },
-    { text: 'Vesion 3.1, started on the site', color: '#ffe29a' },
+    { text: 'Vesion 3.1, started on the site, made by van and only van else its another van', color: '#ffe29a' },
     
     
 ]
@@ -368,10 +391,11 @@ body.addEventListener('click', () => {
     video.play()
 
     welcomeWrapper.classList.add('ok')
-
-    setTimeout(() => bgMusic.play(), 500)
+//really important, sets background music and then sets the timer for a specific time
+    setTimeout(() => bgMusic.currentTime=7,bgMusic.play(), 500)
+    
 }, { once: true })
-
+//super duper necessary
 bgMusic.addEventListener('ended', () => bgMusic.play())
 
 function renderMenu(list, listName) {
@@ -452,6 +476,35 @@ function openSelectedMenuItem() {
         return
     }
 
+    if (currentList === 'methods') {
+        const method = METHODS_LIST.find(item => item.title === title)
+        if (!method) return
+
+        const methodTab = window.open('', '_blank')
+        if (!methodTab) {
+            itemDescription.textContent = 'Allow pop-ups to open this method.'
+            return
+        }
+
+        methodTab.document.write('<!DOCTYPE html><title>Loading method...</title><p>Loading...</p>')
+        fetch(method.fetcher)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`)
+                return response.text()
+            })
+            .then(html => {
+                methodTab.document.open()
+                methodTab.document.write(html)
+                methodTab.document.close()
+            })
+            .catch(() => {
+                methodTab.document.open()
+                methodTab.document.write('<!DOCTYPE html><title>Unable to load method</title><p>Unable to load this page.</p>')
+                methodTab.document.close()
+            })
+        return
+    }
+
     if (currentList === 'music') {
         const musicIndex = MUSIC_OPTIONS.findIndex(track => track.title === title)
         if (musicIndex !== -1) {
@@ -475,14 +528,20 @@ function openSelectedMenuItem() {
 
 function initMenuLinkOver() {
     document.addEventListener('keydown', (e) => {
+        if (e.key === 'Shift' && !loginPanel.hidden) {
+            loginPanel.hidden = true
+            openMethodsAfterLogin = false
+            return
+        }
         if (e.key === 'Escape' && !loginPanel.hidden) {
             loginPanel.hidden = true
             openMethodsAfterLogin = false
             return
         }
 
-        if (e.key === 'Escape' && currentList === 'updates') {
+        if (e.key === 'Escape' && (currentList != 'main')) {
             closeUpdates()
+            renderMenu(MENU_LINKS, 'main')
             return
         }
         
@@ -521,7 +580,7 @@ function initMenuLinkOver() {
         itemDescription.textContent = items[nextIndex].dataset.description || ''
 
         audio.pause();
-        audio.currentTime = 0
+        audio.currentTime = 0;
         audio.play()
     })
 
