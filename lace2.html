@@ -82,7 +82,7 @@
             <div class="money-box">
                 <h2 id="access-yes">RANK: 1</h2>
                 <div class="label" id="user-label">NAME: Random Kid</div>
-                <div>Version 3.7</div>
+                <div>Version 4.0</div>
                 <b style="font-size: 13px;">"The old days of chasing down shadows"</b>
             </div>
             <div class="menu-wrapper">
@@ -169,7 +169,7 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/stupid.css` //-------------Line of remembrance---------------\\
+                stylesheet.href = `${assetBase}/new.css` //-------------Line of remembrance---------------\\
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
                     stylesheetStatus.textContent = 'styles.css: loaded'
@@ -181,7 +181,7 @@
                 }
  //                         ${assetBase}/           copy this for src for .JS and stupid css
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/wallah.js`   //-------------Line of remembrance---------------\\
+                appScript.src = `${assetBase}/new.js`   //-------------Line of remembrance---------------\\
                 appScript.onload = () => {
                     scriptLoaded = true
                     scriptStatus.textContent = 'script.js: loaded!!'
@@ -197,7 +197,7 @@
                     const scriptDone = scriptLoaded || scriptStatus.textContent.endsWith('failed to load')
                     if (!stylesheetDone || !scriptDone) return
                     button.disabled = false
-                    button.textContent = stylesheetLoaded && scriptLoaded ? 'Enter WAVE' : 'Continue anyway'
+                    button.textContent = stylesheetLoaded && scriptLoaded ? 'Launch WAVE' : 'Continue anyway'
                 }
 
                 document.head.appendChild(stylesheet)
