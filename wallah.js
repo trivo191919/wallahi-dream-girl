@@ -155,6 +155,11 @@ const USERS = [
         pass: 'dingus',
         nickname: 'anderdingus',
     },
+    {
+        person: 'e',
+        pass: 'e',
+        nickname: 'template',
+    },
     
 ]
 
@@ -274,39 +279,39 @@ const MENU_LINKS = [
 //slop list of games or something idk ill think about it later
 const METHODS_LIST = [
     {
-        title: 'retro bowl',
-        description: 'wallahi dreams',
+        title: 'RED',
+        description: 'pokemon red, saves, i think, yea, , ,, , ,, , ,,, ',
         opacity: 1,
         rotation: '-5deg',
-        fetcher: `${trivoURLlink}/RB.html`
+        fetcher: `${trivoURLlink}/PR.html`,
     },
     {
         title: 'life',
         description: 'life.',
         opacity: 1,
         rotation: '-2deg',
-        fetcher: `${trivoURLlink}/B.html`
+        fetcher: `${trivoURLlink}/B.html`,
     }, //done
     {
-        title: 'how to fish',
-        description: 'wallahi dream games',
+        title: 'Web dasher',
+        description: 'stupid larp geometry dash',
         opacity: 1,
         rotation: '-5deg',
-        fetcher: `${trivoURLlink}/HTF.html`
-    },
+        fetcher: `${trivoURLlink}/WD.html`,
+    }, //next
     {
-        title: 'lobotomy corportation',
-        description: 'site',
+        title: 'Stardew valley',
+        description: 'harvest, plant, water, sleep repeat.',
         opacity: 0.8,
-        rotation: '5deg',
-        fetcher: `${trivoURLlink}/LC.html`
-    },
+        rotation: '-2deg',
+        fetcher: `${trivoURLlink}/SV.html`,
+    }, //done
     {
         title: 'majora mask',
-        description: 'template',
+        description: 'you met a terrible fate, havent you?',
         opacity: 0.6,
-        rotation: '15deg',
-        fetcher: `${trivoURLlink}/MM.html`
+        rotation: '-3deg',
+        fetcher: `${trivoURLlink}/MM.html`,
     }, //done
 ]
 
@@ -342,6 +347,9 @@ const METHODS_LIST = [
 
 //update log update here mihahaha
 const UPDATE_LOG = [
+    { text: 'Vesion 4.1, the updated Methods list to contain better stuff.', color: '#ffe29a' },
+    { text: 'Vesion 4.0, working on settings and auto login, added some stuff, changed methods and made them change the background', color: '#ffe29a' },
+    { text: 'Vesion 3.9, changed the themes and made some songs play on startup, working on settings and the n i do stuff i guess', color: '#a8e6cf' },
     { text: 'Vesion 3.8, changed it so you can use both "esc" and "shift" for exiting a page', color: '#ffb6d9' },
     { text: 'Vesion 3.7, fixed Themes, starting to work on methods, fixed bug where the music disc orbits around the red part, made startup panel supporting both CDNs', color: '#a8e6cf' },
     { text: 'Vesion 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#ffe29a' },
@@ -562,10 +570,8 @@ function initMenuLinkOver() {
 
         if (currentList === 'updates') return
 
-        const horizontalKey = e.key === 'ArrowLeft' || e.key === 'ArrowRight'
         const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
-        if (!loginPanel.hidden || (!horizontalKey && !verticalKey)) return
-        if (currentList === 'methods' ? !horizontalKey : !verticalKey) return
+        if (!loginPanel.hidden || !verticalKey) return
 
         e.preventDefault()
 
