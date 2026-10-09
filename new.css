@@ -79,14 +79,36 @@ main.show {
 
 .menu.methods-menu {
     top: 35%;
-    left: 50%;
+    left: 85%;
     width: calc(100vw - 48px);
     transform: translateX(-50%);
     flex-direction: column;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: center;
-    gap: 32px;
+    gap: 6px;
+    background-color: rgb(100,100,255,0.5);
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0 7px,
+        rgba(160, 160, 255, 0.5) 7px 8px
+    );
+}
+
+.menu.methods-menu li {
+    font-size: 26px;
+}
+
+.menu.methods-menu li.selected {
+    color: #fff;
+    padding: 4px 12px;
+    text-decoration: line-through 3px #ff0000;
+    transform: scale(1.08) !important;
+}
+
+.menu.methods-menu li.selected::before,
+.menu.methods-menu li.selected::after {
+    content: none;
 }
 
 .menu.music-menu {
