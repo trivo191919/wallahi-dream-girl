@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -18,6 +25,8 @@
             .source-setup[hidden] { display: none; }
             .source-setup form {
                 width: min(420px, 100%);
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
                 padding: 24px;
                 color: #111;
                 background: #fff;
@@ -35,6 +44,20 @@
                 font: inherit;
             }
             .source-setup button { margin-top: 20px; cursor: pointer; }
+            .tos-review {
+                max-height: 38vh;
+                overflow-y: auto;
+                margin-top: 16px;
+                padding: 12px;
+                border: 2px solid #111;
+                background: #f2f2f2;
+                line-height: 1.45;
+            }
+            .tos-review[hidden] { display: none; }
+            .tos-review h2 { margin: 0 0 10px; font-size: 20px; }
+            .tos-review p { margin: 8px 0; }
+            .tos-accept { display: flex !important; align-items: flex-start; gap: 8px; margin-top: 12px !important; font-weight: normal !important; }
+            .tos-accept input { margin-top: 4px; }
         </style>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,7 +86,17 @@
                     <div id="stylesheet-status">ssu.css: waiting</div>
                     <div id="script-status">ssu.js: waiting</div>
                 </div>
-                <button type="submit">Load dependencies</button>
+                <section class="tos-review" id="tos-review" aria-labelledby="tos-title" hidden>
+                    <h2 id="tos-title">Terms of Service</h2>
+                    <p>By continuing, you agree to use this site and its linked content responsibly.</p>
+                    <p>This page may load media and other content from the sources you select. Those services may have their own terms and privacy practices to follow.</p>
+                    <p>The site is provided as-is. Content and availability may change, and you are responsible for deciding whether it is part of your free-time or classtime. I have layed out the warning and will not take responsibility for your action and use with this. <b>You are to not distribute or copy the site without giving credit and authorized permission from the creator or writer of such. If you are an school district administrator and wishes for me to take down my website, contact me immediately.</b></p>
+                    <label class="tos-accept" for="tos-accepted">
+                        <input id="tos-accepted" type="checkbox">
+                        <span>I have read and agree to these terms.</span>
+                    </label>
+                </section>
+                <button type="submit" id="startup-submit">Click if done</button>
                 <p style="font-size:15px; text-align:center">"You met a terrible fate, havent you?""</p>
             </form>
         </section>
@@ -82,7 +115,7 @@
             <div class="money-box">
                 <h2 id="access-yes">RANK: 1</h2>
                 <div class="label" id="user-label">NAME: Random Kid</div>
-                <div>Version 4.0</div>
+                <div>Version 4.2</div>
                 <b style="font-size: 13px;">"The old days of chasing down shadows"</b>
             </div>
             <div class="menu-wrapper">
@@ -94,6 +127,19 @@
                 <div class="updates-card">
                     <h2 id="updates-title">Update log</h2>
                     <div class="updates-log" id="updates-log"></div>
+                    <p class="updates-hint">press esc or shift to exit this page</p>
+                </div>
+            </section>
+            <section class="archives-overlay" id="archives-overlay" aria-labelledby="archives-title" hidden>
+                <div class="archives-card">
+                    <header class="archives-header">
+                        <h2 id="archives-title">Archives</h2>
+                        <p>Personal notes and pages</p>
+                    </header>
+                    <div class="archives-layout">
+                        <nav class="archives-sidebar" id="archives-sidebar" aria-label="Archive pages"></nav>
+                        <article class="archives-page" id="archives-page" aria-live="polite"></article>
+                    </div>
                     <p class="updates-hint">press esc or shift to exit this page</p>
                 </div>
             </section>
@@ -126,14 +172,29 @@
                 </div>
             </div>
         </main>
+
         <script>
+        
+        alert('do ur work first')     
+        alert('updates will be done on the weekends now bradar')
+        alert('contact info in socials')
+
             const sourceSetup = document.querySelector('#source-setup')
             const sourceSetupForm = document.querySelector('#source-setup-form')
+            const launchParams = new URLSearchParams(window.location.search)
+            const launchInBlankTab = launchParams.get('wave-launch') === '1'
+
+            if (launchInBlankTab) {
+                document.querySelector('#welcome-source').value = launchParams.get('welcome') || ''
+                document.querySelector('#video-source').value = launchParams.get('video') || ''
+                document.querySelector('#tos-accepted').checked = true
+            }
 
             sourceSetup.addEventListener('click', event => event.stopPropagation())
             let dependenciesStarted = false
             let stylesheetLoaded = false
             let scriptLoaded = false
+            let tosReviewed = false
 
             sourceSetupForm.addEventListener('submit', event => {
                 event.preventDefault()
@@ -145,8 +206,36 @@
                     return
                 }
 
+                if (!tosReviewed) {
+                    tosReviewed = true
+                    document.querySelector('#tos-review').hidden = false
+                    document.querySelector('#tos-accepted').required = true
+                    button.textContent = 'Accept TOS and load'
+                    document.querySelector('#tos-accepted').focus()
+                    return
+                }
+
                 const welcomeBase = document.querySelector('#welcome-source').value
                 const videoBase = document.querySelector('#video-source').value
+
+                if (!launchInBlankTab) {
+                    const launchTab = window.open('about:blank', '_blank')
+                    if (launchTab) {
+                        const launchURL = new URL(window.location.href)
+                        launchURL.searchParams.set('wave-launch', '1')
+                        launchURL.searchParams.set('welcome', welcomeBase)
+                        launchURL.searchParams.set('video', videoBase)
+                        launchTab.document.open()
+                        launchTab.document.write('<!doctype html><html><head><meta charset="UTF-8"><title>WAVE//V3</title><style>html,body,iframe{width:100%;height:100%;margin:0;border:0;display:block}</style></head><body></body></html>')
+                        const frame = launchTab.document.createElement('iframe')
+                        frame.title = 'WAVE'
+                        frame.src = launchURL.href
+                        launchTab.document.body.appendChild(frame)
+                        sourceSetup.hidden = true
+                        return
+                    }
+                }
+
                 window.WAVE_WELCOME_SOURCE = welcomeBase
                 window.WAVE_VIDEO_SOURCE = videoBase
                 document.querySelector('.welcome-wrapper img').src =
@@ -169,7 +258,7 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/new.css` //-------------Line of remembrance---------------\\
+                stylesheet.href = `${assetBase}/nnew.css` //-------------Line of remembrance---------------\\
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
                     stylesheetStatus.textContent = 'styles.css: loaded'
@@ -181,7 +270,7 @@
                 }
  //                         ${assetBase}/           copy this for src for .JS and stupid css
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/new.js`   //-------------Line of remembrance---------------\\
+                appScript.src = `${assetBase}/nnew.js`   //-------------Line of remembrance---------------\\
                 appScript.onload = () => {
                     scriptLoaded = true
                     scriptStatus.textContent = 'script.js: loaded!!'
@@ -198,11 +287,17 @@
                     if (!stylesheetDone || !scriptDone) return
                     button.disabled = false
                     button.textContent = stylesheetLoaded && scriptLoaded ? 'Launch WAVE' : 'Continue anyway'
+                    if (launchInBlankTab) sourceSetup.hidden = true
                 }
 
                 document.head.appendChild(stylesheet)
                 document.body.appendChild(appScript)
             })
+
+            if (launchInBlankTab) {
+                tosReviewed = true
+                requestAnimationFrame(() => sourceSetupForm.requestSubmit())
+            }
         </script>
     </body>
 </html>
