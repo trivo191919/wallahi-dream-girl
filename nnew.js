@@ -1,6 +1,9 @@
 
 //you will vanish into nothingness if you are looking at this message
 
+// to do list stupid thing because ok
+// undertale
+// 
 //you will vanish into nothingness if you are looking at this message
 //you will vanish into nothingness if you are looking at this message
 //you will vanish into nothingness if you are looking at this message
@@ -23,6 +26,172 @@
 //you will vanish into nothingness if you are looking at this message
 
 //you will vanish into nothingness if you are looking at this message
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -46,6 +215,9 @@ const main = document.querySelector('main')
 const loginPanel = document.querySelector('#login-panel')
 const updatesOverlay = document.querySelector('#updates-overlay')
 const updatesLog = document.querySelector('#updates-log')
+const archivesOverlay = document.querySelector('#archives-overlay')
+const archivesSidebar = document.querySelector('#archives-sidebar')
+const archivesPage = document.querySelector('#archives-page')
 const loginForm = document.querySelector('#login-form')
 const loginUser = document.querySelector('#login-user')
 const loginPass = document.querySelector('#login-pass')
@@ -118,7 +290,7 @@ const USERS = [
         {
         person: 'GS',
         pass: 'x19191920',
-        nickname: 'Gabriel Preston Vo',
+        nickname: 'Gabriel Preston Savory',
         },
     {
         person: 'Local',
@@ -237,7 +409,7 @@ const MENU_LINKS = [
     },
     {
         title: 'Socials',
-        description: 'View Social Links',
+        description: 'View my socials',
         opacity: 1,
         rotation: '-10deg',
     },
@@ -280,7 +452,7 @@ const MENU_LINKS = [
 const METHODS_LIST = [
     {
         title: 'RED',
-        description: 'pokemon red, saves, i think, yea, , ,, , ,, , ,,, ',
+        description: 'pokemon red, go play',
         opacity: 1,
         rotation: '-5deg',
         fetcher: `${trivoURLlink}/PR.html`,
@@ -298,7 +470,21 @@ const METHODS_LIST = [
         opacity: 1,
         rotation: '-5deg',
         fetcher: `${trivoURLlink}/WD.html`,
-    }, //next
+    }, //done
+    {
+        title: 'Brotato',
+        description: 'Game takes so long to complete so its pretty good 10/10',
+        opacity: 1,
+        rotation: '-5deg',
+        fetcher: `${trivoURLlink}/BT.html`,
+    }, //done
+    {
+        title: 'Retro bowl',
+        description: 'RETROOO BOWL',
+        opacity: 1,
+        rotation: '-5deg',
+        fetcher: `${trivoURLlink}/RB.html`,
+    }, //done
     {
         title: 'Stardew valley',
         description: 'harvest, plant, water, sleep repeat.',
@@ -312,6 +498,13 @@ const METHODS_LIST = [
         opacity: 0.6,
         rotation: '-3deg',
         fetcher: `${trivoURLlink}/MM.html`,
+    }, //done
+    {
+        title: 'FNAF',
+        description: 'fear the one who moves at night,..',
+        opacity: 0.7,
+        rotation: '2deg',
+        fetcher: `${trivoURLlink}/FNA.html`,
     }, //done
 ]
 
@@ -346,18 +539,43 @@ const METHODS_LIST = [
 
 
 //update log update here mihahaha
-const UPDATE_LOG = [
-    { text: 'Vesion 4.1, the updated Methods list to contain better stuff.', color: '#ffe29a' },
-    { text: 'Vesion 4.0, working on settings and auto login, added some stuff, changed methods and made them change the background', color: '#ffe29a' },
-    { text: 'Vesion 3.9, changed the themes and made some songs play on startup, working on settings and the n i do stuff i guess', color: '#a8e6cf' },
-    { text: 'Vesion 3.8, changed it so you can use both "esc" and "shift" for exiting a page', color: '#ffb6d9' },
-    { text: 'Vesion 3.7, fixed Themes, starting to work on methods, fixed bug where the music disc orbits around the red part, made startup panel supporting both CDNs', color: '#a8e6cf' },
-    { text: 'Vesion 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#ffe29a' },
-    { text: 'Vesion 3.5, added dependency check, I miss summit dude', color: '#a8e6cf' },
+const ARCHIVE_PAGES = [
+    { 
+        title: 'About Archived',
+        paragraphs: ['This page is about me just writing down stuff that shouldnt be really so much but some may be longer than others. The page is designed so you know more about me and other projects through stories that i have created in sentences                                                                                        '],
+     },
+     { 
+        title: 'Journey',
+        paragraphs: ['This project is coming together and i love how its going, really good progress as of now. I strive to make it better and high quality that fits the starting point. I dont know how i got this far into this mock project but im glad this had happened.'],
+     },
+     {
+        title: 'Reasoning',
+        paragraphs: ['Back in sixth grade, I used to wonder why sites worked and functioned, I used to play fortnite on XBOX cloud gaming back then in Taft. I was quite trouble that never gotten to really rise and i stayed low. That stopped when i was in eigth grade. I started sharing and sharing. I realized how hard sites were to keep hidden from the public. It started small then grew to the point people started asking if i was VV or method man.'],
+    },
+    {
+        title: 'TAFT Middle School (4-7TH GRADE)',
+        paragraphs: ['These were the days how i felt what its like to start a mock project. AI didnt exist back then so I learned manual coding and eventually got better at it, but not good enough. I eventually learned how but CSS was too hard, to make up for my lack of creativeness in UI designing, i resorted to a last thing. These years were the best years of my life but soon to learn whats the value of everything like that.'],
+    },
+    {
+        title: 'Summit Middle School (8TH GRADE)',
+        paragraphs: ['template'],
+    },
+   
+]
+
+const UPDATE_LOG = [ 
+    { text: 'Version 4.2, Fixed some UI stuff, Made ARCHIVED work, added three games and new fullscreen update, working on setting now. ', color: '#a8e6cf' },
+    { text: 'Version 4.1, the updated Methods list to contain better ui.', color: '#ffe29a' },
+    { text: 'Version 4.0, working on settings and auto login, added some stuff, changed methods and made them change the background', color: '#ffe29a' },
+    { text: 'Version 3.9, changed the themes and made some songs play on startup, working on settings and the n i do stuff i guess', color: '#a8e6cf' },
+    { text: 'Version 3.8, changed it so you can use both "esc" and "shift" for exiting a page', color: '#ffb6d9' },
+    { text: 'Version 3.7, fixed Themes, starting to work on methods, fixed bug where the music disc orbits around the red part, made startup panel supporting both CDNs', color: '#a8e6cf' },
+    { text: 'Version 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#ffe29a' },
+    { text: 'Version 3.5, added dependency check, I miss summit dude', color: '#a8e6cf' },
     { text: 'Version 3.4, accessible at school for you guys', color: '#d7b6ff' },
-    { text: 'Vesion 3.3, added 4 songs', color: '#ffb6d9' },
-    { text: 'Vesion 3.2 Fixed the login page', color: '#a8e6cf' },
-    { text: 'Vesion 3.1, started on the site, made by van and only van else its another van', color: '#ffe29a' },
+    { text: 'Version 3.3, added 4 songs', color: '#ffb6d9' },
+    { text: 'Version 3.2 Fixed the login page', color: '#a8e6cf' },
+    { text: 'Version 3.1, started on the site, made by van and only van else its another van', color: '#ffe29a' },
     
     
 ]
@@ -456,6 +674,48 @@ function closeUpdates() {
     }, 250)
 }
 
+function selectArchivePage(index) {
+    const page = ARCHIVE_PAGES[index]
+    if (!page) return
+
+    archivesSidebar.querySelectorAll('.archives-tab').forEach((tab, tabIndex) => {
+        if (tabIndex === index) tab.setAttribute('aria-current', 'page')
+        else tab.removeAttribute('aria-current')
+    })
+
+    archivesPage.replaceChildren()
+    const heading = document.createElement('h3')
+    heading.textContent = page.title
+    archivesPage.append(heading)
+    page.paragraphs.forEach(text => {
+        const paragraph = document.createElement('p')
+        paragraph.textContent = text
+        archivesPage.append(paragraph)
+    })
+}
+
+function showArchives() {
+    archivesSidebar.replaceChildren()
+    ARCHIVE_PAGES.forEach((page, index) => {
+        const tab = document.createElement('button')
+        tab.type = 'button'
+        tab.className = 'archives-tab'
+        tab.textContent = page.title
+        tab.addEventListener('click', () => selectArchivePage(index))
+        archivesSidebar.append(tab)
+    })
+    selectArchivePage(0)
+    menu.hidden = true
+    archivesOverlay.hidden = false
+    currentList = 'archives'
+}
+
+function closeArchives() {
+    archivesOverlay.hidden = true
+    menu.hidden = false
+    renderMenu(MENU_LINKS, 'main')
+}
+
 function openSelectedMenuItem() {
     const selected = menu.querySelector('li.selected')
     if (!selected) return
@@ -484,6 +744,11 @@ function openSelectedMenuItem() {
         return
     }
 
+    if (currentList === 'main' && title === 'Archives') {
+        showArchives()
+        return
+    }
+
     if (currentList === 'methods') {
         const method = METHODS_LIST.find(item => item.title === title)
         if (!method) return
@@ -507,7 +772,7 @@ function openSelectedMenuItem() {
             })
             .catch(() => {
                 methodTab.document.open()
-                methodTab.document.write('<!DOCTYPE html><title>Unable to load method</title><p>Unable to load this page.</p>')
+                methodTab.document.write('<!DOCTYPE html><title>error the fault lies within you</title>')
                 methodTab.document.close()
             })
         return
@@ -547,16 +812,15 @@ function initMenuLinkOver() {
             return
         }
 
-        if (e.key === 'Escape' && (currentList != 'main')) {
-            closeUpdates()
-            renderMenu(MENU_LINKS, 'main')
+        if (e.key === 'Escape' && currentList !== 'main') {
+            if (currentList === 'archives') closeArchives()
+            else closeUpdates()
             return
         }
-        
-        
-       if (e.key === 'Shift' && (currentList != 'main' )) {
-            closeUpdates()
-            renderMenu(MENU_LINKS, 'main')
+
+        if (e.key === 'Shift' && currentList !== 'main') {
+            if (currentList === 'archives') closeArchives()
+            else closeUpdates()
             return
         }
         /*
@@ -568,7 +832,7 @@ function initMenuLinkOver() {
 */
 
 
-        if (currentList === 'updates') return
+        if (currentList === 'updates' || currentList === 'archives') return
 
         const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
         if (!loginPanel.hidden || !verticalKey) return
@@ -591,6 +855,7 @@ function initMenuLinkOver() {
     })
 
     document.addEventListener('keydown', (e) => {
+        if (currentList === 'archives') return
         if (loginPanel.hidden && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             openSelectedMenuItem()
@@ -641,7 +906,10 @@ video.addEventListener('timeupdate', () => {
 })
 
 video.addEventListener('ended', () => {
-    videoWrapper.innerHTML = `<video autoplay muted loop id="video"><source src="${videoAssetBase}/videos/bg-video-2.mp4" type="video/mp4"></video>`;
+    video.loop = true
+    video.src = `${videoAssetBase}/videos/bg-video-2.mp4`
+    video.load()
+    video.play().catch(() => {})
 })
 
 insertListItens()
