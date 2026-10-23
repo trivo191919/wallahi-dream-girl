@@ -2,8 +2,13 @@
 //you will vanish into nothingness if you are looking at this message
 
 // to do list stupid thing because ok
-// undertale
-// 
+// Tomb of the Mask      109-fix.html       
+// Celeste               623-fix2.html      v
+// Bad Piggies           752-fix.html       v
+// Trees hate YOU        801-fix3.html      v
+// Lobotomy Corp         850.html           v
+//
+//
 //you will vanish into nothingness if you are looking at this message
 //you will vanish into nothingness if you are looking at this message
 //you will vanish into nothingness if you are looking at this message
@@ -207,6 +212,8 @@
 const body = document.querySelector('body')
 const menuWrapper = document.querySelector('.menu-wrapper')
 const menu = menuWrapper.querySelector('.menu')
+const METHODS_PER_PAGE = 6
+let currentMethodsPage = 0
 const videoWrapper = document.querySelector('.video-wrapper')
 const video = document.querySelector('#video')
 const welcomeWrapper = document.querySelector('.welcome-wrapper')
@@ -447,64 +454,99 @@ const MENU_LINKS = [
 
 
 
-
+// for every eight methods, make it so a thing pops up to switch pages like a ">" or "<" to go to the next page and show the other content
 //slop list of games or something idk ill think about it later
 const METHODS_LIST = [
     {
         title: 'RED',
         description: 'pokemon red, go play',
         opacity: 1,
-        rotation: '-5deg',
-        fetcher: `${trivoURLlink}/PR.html`,
+        rotation: '-3deg',
+        fetcher: `${trivoURLlink}/files/PR.html`,
     },
     {
         title: 'life',
         description: 'life.',
         opacity: 1,
         rotation: '-2deg',
-        fetcher: `${trivoURLlink}/B.html`,
+        fetcher: `${trivoURLlink}/files/B.html`,
     }, //done
     {
         title: 'Web dasher',
         description: 'stupid larp geometry dash',
-        opacity: 1,
-        rotation: '-5deg',
-        fetcher: `${trivoURLlink}/WD.html`,
+        opacity: 0.5,
+        rotation: '-1deg',
+        fetcher: `${trivoURLlink}/files/WD.html`,
     }, //done
     {
         title: 'Brotato',
         description: 'Game takes so long to complete so its pretty good 10/10',
         opacity: 1,
         rotation: '-5deg',
-        fetcher: `${trivoURLlink}/BT.html`,
+        fetcher: `${trivoURLlink}/files/BT.html`,
     }, //done
     {
         title: 'Retro bowl',
         description: 'RETROOO BOWL',
         opacity: 1,
         rotation: '-5deg',
-        fetcher: `${trivoURLlink}/RB.html`,
+        fetcher: `${trivoURLlink}/files/RB.html`,
     }, //done
     {
         title: 'Stardew valley',
         description: 'harvest, plant, water, sleep repeat.',
         opacity: 0.8,
         rotation: '-2deg',
-        fetcher: `${trivoURLlink}/SV.html`,
+        fetcher: `${trivoURLlink}/files/SV.html`,
     }, //done
     {
         title: 'majora mask',
         description: 'you met a terrible fate, havent you?',
         opacity: 0.6,
         rotation: '-3deg',
-        fetcher: `${trivoURLlink}/MM.html`,
+        fetcher: `${trivoURLlink}/files/MM.html`,
     }, //done
     {
         title: 'FNAF',
         description: 'fear the one who moves at night,..',
         opacity: 0.7,
         rotation: '2deg',
-        fetcher: `${trivoURLlink}/FNA.html`,
+        fetcher: `${trivoURLlink}/files/FNA.html`,
+    }, //done
+     {
+        title: 'TOTM',
+        description: 'its the tomb. Of the mask.',
+        opacity: 0.6,
+        rotation: '-1deg',
+        fetcher: `${trivoURLlink}/files/TOTM.html`,
+    }, //done
+     {
+        title: 'Celeste',
+        description: 'im the pragmatic side of you!!1 ',
+        opacity: 0.65,
+        rotation: '1deg',
+        fetcher: `${trivoURLlink}/files/CSTE.html`,
+    }, //done
+     {
+        title: 'Trees HATE you',
+        description: 'I hate you',
+        opacity: 0.6,
+        rotation: '0deg',
+        fetcher: `${trivoURLlink}/files/THY.html`,
+    }, //done
+    {
+        title: 'Bad Piggies',
+        description: 'i am bad',
+        opacity: 0.6,
+        rotation: '-1deg',
+        fetcher: `${trivoURLlink}/files/BP.html`,
+    }, //done
+     {
+        title: 'Lobotomy Corp',
+        description: 'welcome, new manager',
+        opacity: 0.5,
+        rotation: '-2deg',
+        fetcher: `${trivoURLlink}/files/LC.html`,
     }, //done
 ]
 
@@ -563,14 +605,22 @@ const ARCHIVE_PAGES = [
    
 ]
 
+
+
+
+
+
+
 const UPDATE_LOG = [ 
-    { text: 'Version 4.2, Fixed some UI stuff, Made ARCHIVED work, added three games and new fullscreen update, working on setting now. ', color: '#a8e6cf' },
-    { text: 'Version 4.1, the updated Methods list to contain better ui.', color: '#ffe29a' },
+        { text: 'Version 4.3, Added five games and added page function for Methods, fixed no bugs', color: '#d7b6ff' },
+    { text: 'Version 4.2, Fixed some UI stuff, Made ARCHIVED work, added three games and new fullscreen update, working on setting now. ', color: '#ffb6d9' },
+    { text: 'Version 4.1, the updated Methods list to contain better ui.', color: '#a8e6cf' },
     { text: 'Version 4.0, working on settings and auto login, added some stuff, changed methods and made them change the background', color: '#ffe29a' },
     { text: 'Version 3.9, changed the themes and made some songs play on startup, working on settings and the n i do stuff i guess', color: '#a8e6cf' },
     { text: 'Version 3.8, changed it so you can use both "esc" and "shift" for exiting a page', color: '#ffb6d9' },
     { text: 'Version 3.7, fixed Themes, starting to work on methods, fixed bug where the music disc orbits around the red part, made startup panel supporting both CDNs', color: '#a8e6cf' },
     { text: 'Version 3.6, Changed keybind to exit tab from "Escape" to "Shift"', color: '#ffe29a' },
+    //color loop
     { text: 'Version 3.5, added dependency check, I miss summit dude', color: '#a8e6cf' },
     { text: 'Version 3.4, accessible at school for you guys', color: '#d7b6ff' },
     { text: 'Version 3.3, added 4 songs', color: '#ffb6d9' },
@@ -628,7 +678,13 @@ function renderMenu(list, listName) {
     currentList = listName
     menu.classList.toggle('methods-menu', listName === 'methods')
     menu.classList.toggle('music-menu', listName === 'music')
-    menu.innerHTML = list.map((item, index) => {
+
+    const pageCount = Math.ceil(list.length / METHODS_PER_PAGE)
+    const visibleList = listName === 'methods'
+        ? list.slice(currentMethodsPage * METHODS_PER_PAGE, (currentMethodsPage + 1) * METHODS_PER_PAGE)
+        : list
+
+    menu.innerHTML = visibleList.map((item, index) => {
         const isSelected = listName === 'music' ? index === currentMusicIndex : index === 0
         const rotation = listName === 'music' ? '' : `transform: rotate(${item.rotation});`
         return `
@@ -639,12 +695,50 @@ function renderMenu(list, listName) {
     }).join('')
     menu.querySelectorAll('li').forEach((item, index) => {
         item.animate(
-            [{ opacity: 0 }, { opacity: list[index].opacity }],
+            [{ opacity: 0 }, { opacity: visibleList[index].opacity }],
             { duration: 450, delay: index * 130, easing: 'ease-out', fill: 'both' }
         )
     })
+
+    let pagination = menuWrapper.querySelector('.methods-pagination')
+    if (!pagination) {
+        pagination = document.createElement('div')
+        pagination.className = 'methods-pagination'
+        menuWrapper.append(pagination)
+    }
+    pagination.hidden = listName !== 'methods' || pageCount <= 1
+    if (listName === 'methods' && pageCount > 1) {
+        pagination.replaceChildren()
+
+        const previous = document.createElement('button')
+        previous.type = 'button'
+        previous.textContent = '<'
+        previous.setAttribute('aria-label', 'Previous methods page')
+        previous.disabled = currentMethodsPage === 0
+        previous.addEventListener('click', () => {
+            currentMethodsPage--
+            renderMenu(list, listName)
+        })
+
+        const indicator = document.createElement('span')
+        indicator.textContent = `Page ${currentMethodsPage + 1} of ${pageCount}`
+        indicator.setAttribute('aria-live', 'polite')
+
+        const next = document.createElement('button')
+        next.type = 'button'
+        next.textContent = '>'
+        next.setAttribute('aria-label', 'Next methods page')
+        next.disabled = currentMethodsPage === pageCount - 1
+        next.addEventListener('click', () => {
+            currentMethodsPage++
+            renderMenu(list, listName)
+        })
+
+        pagination.append(previous, indicator, next)
+    }
+
     const selectedIndex = listName === 'music' ? currentMusicIndex : 0
-    itemDescription.textContent = list[selectedIndex]?.description || ''
+    itemDescription.textContent = visibleList[selectedIndex]?.description || ''
 }
 
 function insertListItens() {
@@ -911,6 +1005,6 @@ video.addEventListener('ended', () => {
     video.load()
     video.play().catch(() => {})
 })
-
+setInterval(function(){showTime();}, 1000);
 insertListItens()
 initMenuLinkOver()
