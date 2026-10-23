@@ -10,7 +10,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WAVE//V3</title>
+        <title id="ct">WAVE//V3</title>
         <style>
             .source-setup {
                 position: fixed;
@@ -258,7 +258,7 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/nnew.css` //-------------Line of remembrance---------------\\
+                stylesheet.href = `${assetBase}/a.css` //-------------Line of remembrance---------------\\
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
                     stylesheetStatus.textContent = 'styles.css: loaded'
@@ -270,11 +270,11 @@
                 }
  //                         ${assetBase}/           copy this for src for .JS and stupid css
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/nnew.js`   //-------------Line of remembrance---------------\\
+                appScript.src = `${assetBase}/a.js`   //-------------Line of remembrance---------------\\
                 appScript.onload = () => {
                     scriptLoaded = true
                     scriptStatus.textContent = 'script.js: loaded!!'
-                    finishLoading()
+                    finishLoading()  
                 }
                 appScript.onerror = () => {
                     scriptStatus.textContent = 'script.js: failed to load, assuming its the wrong thing too'
