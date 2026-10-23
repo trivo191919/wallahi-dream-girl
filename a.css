@@ -99,8 +99,41 @@ main.show {
     );
 }
 
-.menu.methods-menu li {
+ .menu.methods-menu li {
     font-size: 26px;
+}
+
+.methods-pagination {
+    position: fixed;
+    z-index: 2;
+    left: 50%;
+    bottom: 8%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transform: translateX(-50%);
+    color: #fff;
+    font: bold 18px Arial, Helvetica, sans-serif;
+    text-shadow: 1px 2px #000;
+}
+
+.methods-pagination[hidden] {
+    display: none;
+}
+
+.methods-pagination button {
+    min-width: 44px;
+    padding: 8px 12px;
+    color: #fff;
+    background: #111c;
+    border: 2px solid #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.methods-pagination button:disabled {
+    opacity: 0.45;
+    cursor: default;
 }
 
 .menu.methods-menu li.selected {
@@ -549,7 +582,7 @@ main.show {
 .bottom-actions {
     position: fixed;
     right: 0;
-    bottom: 50px;
+    bottom: 475px;
     color: #fff;
     font-size: 21px;
     min-width: 200px;
