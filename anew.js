@@ -2,11 +2,13 @@
 //you will vanish into nothingness if you are looking at this message
 
 // to do list stupid thing because ok
-// Tomb of the Mask      109-fix.html       
-// Celeste               623-fix2.html      v
-// Bad Piggies           752-fix.html       v
-// Trees hate YOU        801-fix3.html      v
-// Lobotomy Corp         850.html           v
+// Tomb of the Mask      109-fix.html       vD
+// Celeste               623-fix2.html      vD
+// Bad Piggies           752-fix.html       vD
+// Trees hate YOU        801-fix3.html      vD
+// Lobotomy Corp         850.html           vD
+// WaterWorks            594-fix2.html      vD
+// MC 
 //
 //
 //you will vanish into nothingness if you are looking at this message
@@ -292,12 +294,17 @@ const USERS = [
     {
         person: 'V',
         pass: 'x01003829',
-        nickname: 'VV',
+        nickname: 'VAN VO',
     },
         {
         person: 'GS',
         pass: 'x19191920',
         nickname: 'Gabriel Preston Savory',
+        },
+        {
+        person: 'VTR',
+        pass: 'iamtaftboy',
+        nickname: 'Victor',
         },
     {
         person: 'Local',
@@ -458,11 +465,11 @@ const MENU_LINKS = [
 //slop list of games or something idk ill think about it later
 const METHODS_LIST = [
     {
-        title: 'RED',
-        description: 'pokemon red, go play',
+        title: 'WATERWORKS',
+        description: 'water go civil',
         opacity: 1,
         rotation: '-3deg',
-        fetcher: `${trivoURLlink}/files/PR.html`,
+        fetcher: `${trivoURLlink}/files/water.html`,
     },
     {
         title: 'life',
@@ -548,6 +555,15 @@ const METHODS_LIST = [
         rotation: '-2deg',
         fetcher: `${trivoURLlink}/files/LC.html`,
     }, //done
+    {
+        title: 'Mc',
+        description: 'MULTIPLAYER, ENTER wss://mc.sealcentral.co',
+        opacity: 0.5,
+        rotation: '-2deg',
+        fetcher: `${trivoURLlink}/files/mc.html`,
+    }, //done
+    // https://cdn.jsdelivr.net/gh/ZeldaBanana/Earglercraft-Optimized@main/EaglerCraft%201.8.8
+    // woohoo hey stop checking source code you absolute bum
 ]
 
 
@@ -596,7 +612,7 @@ const ARCHIVE_PAGES = [
     },
     {
         title: 'TAFT Middle School (4-7TH GRADE)',
-        paragraphs: ['These were the days how i felt what its like to start a mock project. AI didnt exist back then so I learned manual coding and eventually got better at it, but not good enough. I eventually learned how but CSS was too hard, to make up for my lack of creativeness in UI designing, i resorted to a last thing. These years were the best years of my life but soon to learn whats the value of everything like that.'],
+        paragraphs: ['These were the days how i felt what its like to start a project. AI didnt exist back then so I learned manual coding and eventually got better at it, but not good enough. I eventually learned how but CSS was too hard, to make up for my lack of creativeness in UI designing, i resorted to a last thing. These years were the best years of my life but soon to learn whats the value of everything like that.'],
     },
     {
         title: 'Summit Middle School (8TH GRADE)',
@@ -612,6 +628,7 @@ const ARCHIVE_PAGES = [
 
 
 const UPDATE_LOG = [ 
+    { text: 'Version 4.4, added two games, bug fixed', color: '#d7b6ff' },
         { text: 'Version 4.3, Added five games and added page function for Methods, fixed no bugs', color: '#d7b6ff' },
     { text: 'Version 4.2, Fixed some UI stuff, Made ARCHIVED work, added three games and new fullscreen update, working on setting now. ', color: '#ffb6d9' },
     { text: 'Version 4.1, the updated Methods list to contain better ui.', color: '#a8e6cf' },
@@ -849,11 +866,11 @@ function openSelectedMenuItem() {
 
         const methodTab = window.open('', '_blank')
         if (!methodTab) {
-            itemDescription.textContent = 'Allow pop-ups to open this method.'
+            itemDescription.textContent = 'Allow pop-ups to open this'
             return
         }
 
-        methodTab.document.write('<!DOCTYPE html><title>Loading method...</title><p>Loading...</p>')
+        methodTab.document.write('<!DOCTYPE html><title>New Tab</title><p>NOT LOADING...</p>')
         fetch(method.fetcher)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`)
