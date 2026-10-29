@@ -58,6 +58,34 @@
             .tos-review p { margin: 8px 0; }
             .tos-accept { display: flex !important; align-items: flex-start; gap: 8px; margin-top: 12px !important; font-weight: normal !important; }
             .tos-accept input { margin-top: 4px; }
+            .access-gate {
+                position: fixed;
+                inset: 0;
+                z-index: 12;
+                display: grid;
+                place-items: center;
+                padding: 20px;
+                background: #101010ef;
+                font: 16px Arial, Helvetica, sans-serif;
+            }
+            .access-gate[hidden] { display: none; }
+            .access-gate-card {
+                width: min(420px, 100%);
+                padding: 24px;
+                color: #111;
+                background: #fff;
+                border: 3px solid #000;
+                box-shadow: 8px 8px 0 #f00;
+            }
+            .access-gate-card h2 { margin: 0 0 12px; }
+            .access-gate-card p { line-height: 1.5; }
+            #access-uid {
+                display: block;
+                overflow-wrap: anywhere;
+                padding: 10px;
+                background: #eee;
+                user-select: all;
+            }
         </style>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -100,6 +128,18 @@
                 <p style="font-size:15px; text-align:center">"You met a terrible fate, havent you?""</p>
             </form>
         </section>
+        <section class="access-gate" id="access-gate" aria-labelledby="access-gate-title" hidden>
+            <div class="access-gate-card">
+                <h2 id="access-gate-title">Approval required</h2>
+                <p id="access-status" role="status" aria-live="polite">Checking your approval…</p>
+                <p>Your UID — send it to the site administrator to request access:</p>
+                <code id="access-uid">Loading UID…</code>
+            </div>
+        </section>
+        <aside class="announcement-banner" id="announcement-banner" aria-live="polite" hidden>
+            <strong>ANNOUNCEMENT:</strong>
+            <span id="announcement-text"></span>
+        </aside>
         <div class="video-wrapper">
             <video muted id="video">
                 <source type="video/mp4">
@@ -117,6 +157,18 @@
                 <div class="label" id="user-label">NAME: Random Kid</div>
                 <div>Version 4.4</div>
                 <b style="font-size: 13px;">"The old days of chasing down shadows"</b>
+                <div class="announcement-admin">
+                    <button type="button" id="announce-open" hidden>Announce</button>
+                    <form id="announce-form" hidden>
+                        <label for="announce-input">Announcement (up to 500 characters)</label>
+                        <textarea id="announce-input" maxlength="500" required></textarea>
+                        <div class="announcement-buttons">
+                            <button type="submit">Publish for 3 days</button>
+                            <button type="button" id="announce-cancel">Cancel</button>
+                        </div>
+                        <p id="announce-status" role="status" aria-live="polite"></p>
+                    </form>
+                </div>
             </div>
             <div class="menu-wrapper">
                 
@@ -142,6 +194,21 @@
                     </div>
                     <p class="updates-hint">press esc or shift to exit this page</p>
                 </div>
+            </section>
+            <section class="talk-panel" id="talk-panel" aria-labelledby="talk-title" hidden>
+                <header class="talk-header">
+                    <h2 id="talk-title">Talk</h2>
+                    <button type="button" id="talk-close" aria-label="Close chat">×</button>
+                </header>
+                <p id="talk-status" role="status" aria-live="polite">Connecting to chat…</p>
+                <ol class="talk-messages" id="talk-messages" aria-live="polite"></ol>
+                <form id="talk-form">
+                    <label for="talk-input">Message</label>
+                    <div class="talk-compose">
+                        <input id="talk-input" maxlength="500" autocomplete="off" required>
+                        <button type="submit">Send</button>
+                    </div>
+                </form>
             </section>
             <section class="login-panel" id="login-panel" aria-labelledby="login-title" hidden>
                 <form id="login-form">
@@ -258,7 +325,7 @@
                 const scriptStatus = document.querySelector('#script-status')
                 const stylesheet = document.createElement('link')
                 stylesheet.rel = 'stylesheet'
-                stylesheet.href = `${assetBase}/anew.css` //-------------Line of remembrance---------------\\
+                stylesheet.href = `${assetBase}/styles.css` //-------------Line of remembrance---------------\\
                 stylesheet.onload = () => {
                     stylesheetLoaded = true
                     stylesheetStatus.textContent = 'styles.css: loaded'
@@ -270,7 +337,7 @@
                 }
  //                         ${assetBase}/           copy this for src for .JS and stupid css
                 const appScript = document.createElement('script')
-                appScript.src = `${assetBase}/anew.js`   //-------------Line of remembrance---------------\\
+                appScript.src = `${assetBase}/script.js`   //-------------Line of remembrance---------------\\
                 appScript.onload = () => {
                     scriptLoaded = true
                     scriptStatus.textContent = 'script.js: loaded!!'
