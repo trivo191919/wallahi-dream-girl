@@ -210,18 +210,23 @@
 
 
 
-
 const body = document.querySelector('body')
 const menuWrapper = document.querySelector('.menu-wrapper')
 const menu = menuWrapper.querySelector('.menu')
 const METHODS_PER_PAGE = 6
 let currentMethodsPage = 0
+let person = 'Guest'
 const videoWrapper = document.querySelector('.video-wrapper')
 const video = document.querySelector('#video')
 const welcomeWrapper = document.querySelector('.welcome-wrapper')
 const itemDescription = document.querySelector('.item-description')
 const main = document.querySelector('main')
 const loginPanel = document.querySelector('#login-panel')
+const talkPanel = document.querySelector('#talk-panel')
+const talkStatus = document.querySelector('#talk-status')
+const talkMessages = document.querySelector('#talk-messages')
+const talkForm = document.querySelector('#talk-form')
+const talkInput = document.querySelector('#talk-input')
 const updatesOverlay = document.querySelector('#updates-overlay')
 const updatesLog = document.querySelector('#updates-log')
 const archivesOverlay = document.querySelector('#archives-overlay')
@@ -233,13 +238,163 @@ const loginPass = document.querySelector('#login-pass')
 const loginMessage = document.querySelector('#login-message')
 const userLabel = document.querySelector('#user-label')
 const access = document.querySelector('#access-yes')
+const announceOpen = document.querySelector('#announce-open')
+const announceForm = document.querySelector('#announce-form')
+const announceInput = document.querySelector('#announce-input')
+const announceStatus = document.querySelector('#announce-status')
+const announcementBanner = document.querySelector('#announcement-banner')
+const announcementText = document.querySelector('#announcement-text')
+const accessGate = document.querySelector('#access-gate')
+const accessStatus = document.querySelector('#access-status')
+const accessUid = document.querySelector('#access-uid')
+const sourceSetupPanel = document.querySelector('#source-setup')
 const trivoURLlink = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
 const videoAssetBase = `${window.WAVE_VIDEO_SOURCE}/gh/emanoelqueiroz/persona-3-menu@latest`
 
 const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDM9pqr3elR66riVeas5T5SxOkbJZqycHw",
+  authDomain: "databaseformeia.firebaseapp.com",
+  databaseURL: "https://databaseformeia-default-rtdb.firebaseio.com",
+  projectId: "databaseformeia",
+  storageBucket: "databaseformeia.firebasestorage.app",
+  messagingSenderId: "553276720127",
+  appId: "1:553276720127:web:e45b9cc87c8d7d58eb5dca",
+  measurementId: "G-83MK8SJN03"
+};
 
-        
+
+
+let chatDatabase
+let chatUser
+let chatStarted = false
+let firebaseReady
+let siteAccessApproved = false
+
+function syncAccessGate() {
+    accessGate.hidden = siteAccessApproved || !sourceSetupPanel.hidden
+}
+
+accessGate.addEventListener('click', event => event.stopPropagation())
+new MutationObserver(syncAccessGate).observe(sourceSetupPanel, {
+    attributes: true,
+    attributeFilter: ['hidden'],
+})
+syncAccessGate()
+
+function loadFirebaseCompat(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = src
+        script.onload = resolve
+        script.onerror = () => reject(new Error('Could not load Firebase SDK'))
+        document.head.append(script)
+    })
+}
+
+async function getFirebaseDatabase() {
+    if (!firebaseReady) {
+        firebaseReady = (async () => {
+            await loadFirebaseCompat('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js')
+            await loadFirebaseCompat('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js')
+            await loadFirebaseCompat('https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js')
+        })()
+    }
+    await firebaseReady
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig)
+    return firebase.database(app)
+}
+
+async function initializeSiteAccess() {
+    try {
+        const database = await getFirebaseDatabase()
+        const auth = firebase.auth(firebase.app())
+        const credential = auth.currentUser
+            ? { user: auth.currentUser }
+            : await auth.signInAnonymously()
+        chatUser = credential.user
+        accessUid.textContent = chatUser.uid
+
+        const approvalRef = database.ref(`people/${chatUser.uid}`)
+        const approvalSnapshot = await approvalRef.once('value')
+        if (!approvalSnapshot.exists()) {
+            await approvalRef.set(false)
+        }
+
+        approvalRef.on('value', snapshot => {
+            siteAccessApproved = snapshot.val() === true
+            accessStatus.textContent = siteAccessApproved
+                ? 'Access approved. Welcome!'
+                : 'Access is not approved yet. Ask the administrator to set people/<your UID> to true.'
+            syncAccessGate()
+        }, error => {
+            siteAccessApproved = false
+            accessStatus.textContent = `Could not check approval: ${error.message}`
+            syncAccessGate()
+        })
+    } catch (error) {
+        accessStatus.textContent = `Could not check approval: ${error.message}`
+        accessUid.textContent = 'UID unavailable'
+        syncAccessGate()
+    }
+}
+
+async function initializeChat() {
+    if (chatStarted) return
+    chatStarted = true
+    talkStatus.textContent = 'linking up with others...'
+
+    try {
+        chatDatabase = await getFirebaseDatabase()
+        const auth = firebase.auth(firebase.app())
+        chatUser = auth.currentUser || (await auth.signInAnonymously()).user
+
+        chatDatabase.ref('talk/messages').orderByChild('createdAt').limitToLast(100)
+            .on('child_added', snapshot => {
+                const message = snapshot.val()
+                if (!message || typeof message.text !== 'string') return
+                const line = document.createElement('li')
+                const name = document.createElement('strong')
+                name.textContent = `${message.name || 'Guest'}: `
+                const text = document.createElement('span')
+                text.textContent = message.text
+                line.append(name, text)
+                talkMessages.append(line)
+                talkMessages.scrollTop = talkMessages.scrollHeight
+                talkStatus.textContent = 'Connected'
+            }, error => {
+                talkStatus.textContent = `STUPID ERROR HELP : ${error.message}`
+            })
+    } catch (error) {
+        chatStarted = false
+        talkStatus.textContent = `ERROR HELP HELP WHAAAT STO : ${error.message}`
+    }
+}
+
+let announcementExpiryTimer
+async function initializeAnnouncements() {
+    const database = await getFirebaseDatabase()
+    database.ref('announcements/current').on('value', snapshot => {
+        const announcement = snapshot.val()
+        clearTimeout(announcementExpiryTimer)
+
+        if (!announcement || typeof announcement.text !== 'string' ||
+            !Number.isFinite(announcement.expiresAt) || announcement.expiresAt <= Date.now()) {
+            announcementBanner.hidden = true
+            return
+        }
+
+        announcementText.textContent = announcement.text
+        announcementBanner.hidden = false
+        announcementExpiryTimer = setTimeout(() => {
+            announcementBanner.hidden = true
+        }, announcement.expiresAt - Date.now())
+    }, error => {
+        announceStatus.textContent = `Could not load announcements: ${error.message}`
+    })
+}
+
 const MUSIC_OPTIONS = [
     //it goes from 0 1 2 3 4
     {
@@ -269,7 +424,7 @@ const MUSIC_OPTIONS = [
     },
 ]
 
-const bgMusic = new Audio(MUSIC_OPTIONS[3].url);
+const bgMusic = new Audio(MUSIC_OPTIONS[4].url);
 
 
 
@@ -294,57 +449,34 @@ const USERS = [
     {
         person: 'V',
         pass: 'x01003829',
-        nickname: 'VAN VO',
+        nickname: 'Van Vo',
+    },
+
+    {
+        person: 'long',
+        pass: 'loganisok',
+        nickname: 'longan fruit',
+    },
+    {
+        person: 'warren',
+        pass: 'iamlazy',
+        nickname: 'Hayes',
+    },
+    {
+        person: 'ava',
+        pass: 'something',
+        nickname: 'Ava',
+    },
+    {
+        person: 'amari',
+        pass: 'bummiestboy',
+        nickname: 'amari from omori',
     },
         {
-        person: 'GS',
-        pass: 'x19191920',
-        nickname: 'Gabriel Preston Savory',
-        },
-        {
-        person: 'VTR',
-        pass: 'iamtaftboy',
-        nickname: 'Victor',
-        },
-    {
-        person: 'Local',
-        pass: 'x12121290',
-        nickname: 'Preston Vo Savory',
-    },
-        {
-        person: 'Bishop',
-        pass: 'x12790',
-        nickname: 'Bishop da smith',
-        },
-    {
-        person: 'Qu',
-        pass: 'moron',
-        nickname: 'Quinni',
-    },
-        {
-        person: 'Max',
-        pass: 'luluyam',
-        nickname: 'phanuel lova',
-        },
-    {
-        person: 'boi',
-        pass: 'ihateboi',
-        nickname: 'Mason boy',
-    },
-    {
-        person: 'emili',
-        pass: 'exv',
-        nickname: 'emilio the _____',
-    },
-    {
-        person: 'andersonion',
-        pass: 'dingus',
-        nickname: 'anderdingus',
-    },
-    {
-        person: 'e',
-        pass: 'e',
-        nickname: 'template',
+        person: 'deronte',
+        pass: 'dingusberry',
+        nickname: 'Deronte',
+    
     },
     
 ]
@@ -628,6 +760,7 @@ const ARCHIVE_PAGES = [
 
 
 const UPDATE_LOG = [ 
+    { text: 'Version 4.5, The Security and Talk update, self explainatory', color: '#a8e6cf' },
     { text: 'Version 4.4, added two games, bug fixed', color: '#d7b6ff' },
         { text: 'Version 4.3, Added five games and added page function for Methods, fixed no bugs', color: '#d7b6ff' },
     { text: 'Version 4.2, Fixed some UI stuff, Made ARCHIVED work, added three games and new fullscreen update, working on setting now. ', color: '#ffb6d9' },
@@ -676,11 +809,13 @@ let currentList = 'main'
 let currentMusicIndex = 0
 let initiated = false
 let isLoggedIn = false
+let isAnnounceAdmin = false
 let openMethodsAfterLogin = false
 
 bgMusic.volume = 1
 
 body.addEventListener('click', () => {
+    document.body.requestFullscreen()
     video.play()
 
     welcomeWrapper.classList.add('ok')
@@ -827,6 +962,12 @@ function closeArchives() {
     renderMenu(MENU_LINKS, 'main')
 }
 
+function closeTalk() {
+    talkPanel.hidden = true
+    menu.hidden = false
+    renderMenu(MENU_LINKS, 'main')
+}
+
 function openSelectedMenuItem() {
     const selected = menu.querySelector('li.selected')
     if (!selected) return
@@ -847,6 +988,15 @@ function openSelectedMenuItem() {
 
     if (currentList === 'main' && title === 'Themes') {
         renderMenu(MUSIC_OPTIONS, 'music')
+        return
+    }
+
+    if (currentList === 'main' && title === 'Talk') {
+        menu.hidden = true
+        talkPanel.hidden = false
+        currentList = 'talk'
+        initializeChat()
+        talkInput.focus()
         return
     }
 
@@ -911,7 +1061,68 @@ function openSelectedMenuItem() {
 }
 
 function initMenuLinkOver() {
+    document.querySelector('#talk-close').addEventListener('click', closeTalk)
+
+    announceOpen.addEventListener('click', () => {
+        announceForm.hidden = false
+        announceInput.focus()
+    })
+    document.querySelector('#announce-cancel').addEventListener('click', () => {
+        announceForm.hidden = true
+        announceStatus.textContent = ''
+    })
+    announceForm.addEventListener('submit', async event => {
+        event.preventDefault()
+        if (!isAnnounceAdmin) return
+
+        const text = announceInput.value.trim()
+        if (!text) {
+            announceStatus.textContent = 'Write an announcement'
+            return
+        }
+
+        announceStatus.textContent = 'Publishing…'
+        try {
+            const database = await getFirebaseDatabase()
+            await database.ref('announcements/current').set({
+                text,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                expiresAt: Date.now() + 3 * 24 * 60 * 60 * 1000,
+            })
+            announceInput.value = ''
+            announceForm.hidden = true
+            announceStatus.textContent = 'Announcement published for 3 days.'
+        } catch (error) {
+            announceStatus.textContent = `Could not publish: ${error.message}`
+        }
+    })
+
+    talkForm.addEventListener('submit', async event => {
+        event.preventDefault()
+        const text = talkInput.value.trim()
+        if (!text) return
+        if (!chatUser || !chatDatabase) {
+            talkStatus.textContent = 'Chat is still connecting. Try again in a moment.'
+            return
+        }
+
+        talkStatus.textContent = 'Sending…'
+        try {
+            await chatDatabase.ref('talk/messages').push({
+                uid: chatUser.uid,
+                name: `${person} - ${chatUser.uid.slice(0, 4)}`,
+                text,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+            })
+            talkInput.value = ''
+            talkStatus.textContent = 'Connected'
+        } catch (error) {
+            talkStatus.textContent = `Could not send: ${error.message}`
+        }
+    })
+
     document.addEventListener('keydown', (e) => {
+        if (!siteAccessApproved) return
         if (e.key === 'Shift' && !loginPanel.hidden) {
             loginPanel.hidden = true
             openMethodsAfterLogin = false
@@ -925,12 +1136,14 @@ function initMenuLinkOver() {
 
         if (e.key === 'Escape' && currentList !== 'main') {
             if (currentList === 'archives') closeArchives()
+            else if (currentList === 'talk') closeTalk()
             else closeUpdates()
             return
         }
 
         if (e.key === 'Shift' && currentList !== 'main') {
             if (currentList === 'archives') closeArchives()
+            else if (currentList === 'talk') closeTalk()
             else closeUpdates()
             return
         }
@@ -943,7 +1156,7 @@ function initMenuLinkOver() {
 */
 
 
-        if (currentList === 'updates' || currentList === 'archives') return
+        if (currentList === 'updates' || currentList === 'archives' || currentList === 'talk') return
 
         const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
         if (!loginPanel.hidden || !verticalKey) return
@@ -966,7 +1179,8 @@ function initMenuLinkOver() {
     })
 
     document.addEventListener('keydown', (e) => {
-        if (currentList === 'archives') return
+        if (!siteAccessApproved) return
+        if (currentList === 'archives' || currentList === 'talk') return
         if (loginPanel.hidden && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             openSelectedMenuItem()
@@ -993,6 +1207,9 @@ function initMenuLinkOver() {
         }
         
         isLoggedIn = true
+        isAnnounceAdmin = user.person === 'V'
+        announceOpen.hidden = !isAnnounceAdmin
+        person = `${user.nickname}`
         access.textContent = `Rank: 9`
         userLabel.textContent = `NAME: ${user.nickname}`
         loginMessage.textContent = `get, ${user.nickname}`
@@ -1025,3 +1242,7 @@ video.addEventListener('ended', () => {
 setInterval(function(){showTime();}, 1000);
 insertListItens()
 initMenuLinkOver()
+initializeSiteAccess()
+initializeAnnouncements().catch(error => {
+    announceStatus.textContent = `Could not connect to announcements: ${error.message}`
+})
