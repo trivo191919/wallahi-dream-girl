@@ -253,7 +253,7 @@ const videoAssetBase = `${window.WAVE_VIDEO_SOURCE}/gh/emanoelqueiroz/persona-3-
 
 const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
 
-const firebaseConfig = {
+ const firebaseConfig = {
   apiKey: "AIzaSyDM9pqr3elR66riVeas5T5SxOkbJZqycHw",
   authDomain: "databaseformeia.firebaseapp.com",
   databaseURL: "https://databaseformeia-default-rtdb.firebaseio.com",
@@ -263,6 +263,7 @@ const firebaseConfig = {
   appId: "1:553276720127:web:e45b9cc87c8d7d58eb5dca",
   measurementId: "G-83MK8SJN03"
 };
+
 
 
 
@@ -325,12 +326,12 @@ async function initializeSiteAccess() {
         approvalRef.on('value', snapshot => {
             siteAccessApproved = snapshot.val() === true
             accessStatus.textContent = siteAccessApproved
-                ? 'Access approved. Welcome!'
-                : 'Access is not approved yet. Ask the administrator to set people/<your UID> to true.'
+                ? 'Access approved'
+                : 'Access is not approved yet'
             syncAccessGate()
         }, error => {
             siteAccessApproved = false
-            accessStatus.textContent = `Could not check approval: ${error.message}`
+            accessStatus.textContent = `Could not check, ${error.message}`
             syncAccessGate()
         })
     } catch (error) {
@@ -478,6 +479,12 @@ const USERS = [
         nickname: 'Deronte',
     
     },
+    {
+        person: 'dema',
+        pass: 'dmar',
+        nickname: 'Demario',
+    
+    },
     
 ]
 
@@ -525,7 +532,7 @@ const MENU_LINKS = [
     },
     {
         title: 'Settings',
-        description: 'alter ur life',
+        description: 'alter ur stuff',
         opacity: 0.8,
         rotation: '-5deg',
     },
@@ -561,8 +568,8 @@ const MENU_LINKS = [
     },
 
     {
-        title: 'Calendar',
-        description: 'View the update schedules',
+        title: 'Rules',
+        description: 'rules cuz we dont know how to act bro',
         opacity: 0.8,
         rotation: '-5deg',
     },
@@ -573,7 +580,7 @@ const MENU_LINKS = [
         opacity: 0.6,
         rotation: '-10deg',
     },
-]
+]       //almost done with all three tabs
 
 
 
@@ -693,7 +700,15 @@ const METHODS_LIST = [
         opacity: 0.5,
         rotation: '-2deg',
         fetcher: `${trivoURLlink}/files/mc.html`,
-    }, //done
+    },
+    {
+        title: 'Pac-Man',
+        description: 'beyond evil ghosts attack yellow hungry boy',
+        opacity: 0.5,
+        rotation: '-2deg',
+        fetcher: `${trivoURLlink}/files/Pm.html`,
+    },
+    //done
     // https://cdn.jsdelivr.net/gh/ZeldaBanana/Earglercraft-Optimized@main/EaglerCraft%201.8.8
     // woohoo hey stop checking source code you absolute bum
 ]
@@ -1141,7 +1156,7 @@ function initMenuLinkOver() {
             return
         }
 
-        if (e.key === 'Shift' && currentList !== 'main') {
+        if (e.key === 'Escape' && currentList !== 'main') {
             if (currentList === 'archives') closeArchives()
             else if (currentList === 'talk') closeTalk()
             else closeUpdates()
@@ -1239,10 +1254,40 @@ video.addEventListener('ended', () => {
     video.load()
     video.play().catch(() => {})
 })
-setInterval(function(){showTime();}, 1000);
+const siteClock = document.querySelector('#site-clock')
+const batteryLabel = document.querySelector('#battery-label')
+const batteryBar = document.querySelector('.battery-bar')
+const batteryFill = document.querySelector('#battery-fill')
+
+function updateClock() {
+    siteClock.textContent = new Date().toLocaleTimeString()
+}
+
+updateClock()
+setInterval(updateClock, 1000)
+
+if (navigator.getBattery) {
+    navigator.getBattery().then(battery => {
+        function updateBattery() {
+            const level = Math.round(battery.level * 100)
+            batteryLabel.textContent = `Battery: ${level}%${battery.charging ? ' (charging)' : ''}`
+            batteryFill.style.width = `${level}%`
+            batteryBar.setAttribute('aria-valuenow', level)
+        }
+
+        updateBattery()
+        battery.addEventListener('levelchange', updateBattery)
+        battery.addEventListener('chargingchange', updateBattery)
+    }).catch(() => {
+        batteryLabel.textContent = 'Battery: unavailable'
+    })
+} else {
+    batteryLabel.textContent = 'Battery: unavailable'
+}
+
 insertListItens()
 initMenuLinkOver()
 initializeSiteAccess()
 initializeAnnouncements().catch(error => {
-    announceStatus.textContent = `Could not connect to announcements: ${error.message}`
+    announceStatus.textContent = `${error.message}`
 })
