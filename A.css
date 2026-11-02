@@ -93,6 +93,36 @@ main.show {
 }
 .announcement-banner[hidden] { display: none; }
 #announcement-text { overflow-wrap: anywhere; }
+.system-status {
+    position: fixed;
+    z-index: 2;
+    top: 16px;
+    left: 18px;
+    display: grid;
+    gap: 4px;
+    color: #fff;
+    font: bold 16px Arial, Helvetica, sans-serif;
+    text-shadow: 1px 2px #000;
+}
+#site-clock { font-size: 22px; }
+.battery-bar {
+    position: fixed;
+    z-index: 2;
+    left: 18px;
+    bottom: 18px;
+    width: min(320px, calc(100vw - 36px));
+    height: 22px;
+    overflow: hidden;
+    border: 2px solid #fff;
+    background: #0009;
+    box-shadow: 2px 2px 0 #000;
+}
+.battery-fill {
+    width: 0;
+    height: 100%;
+    background: #fff;
+    transition: width 300ms ease;
+}
 
 /* handles the buttons*/
 .menu[hidden] {
