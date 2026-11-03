@@ -248,6 +248,7 @@ const announcementBanner = document.querySelector('#announcement-banner')
 const announcementText = document.querySelector('#announcement-text')
 const accessGate = document.querySelector('#access-gate')
 const accessStatus = document.querySelector('#access-status')
+const accessRetry = document.querySelector('#access-retry')
 const accessUid = document.querySelector('#access-uid')
 const sourceSetupPanel = document.querySelector('#source-setup')
 const trivoURLlink = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
@@ -317,14 +318,23 @@ new MutationObserver(syncAccessGate).observe(sourceSetupPanel, {
 })
 syncAccessGate()
 
+const firebaseScriptLoads = new Map()
 function loadFirebaseCompat(src) {
-    return new Promise((resolve, reject) => {
+    if (firebaseScriptLoads.has(src)) return firebaseScriptLoads.get(src)
+
+    const loading = new Promise((resolve, reject) => {
         const script = document.createElement('script')
         script.src = src
-        script.onload = resolve
-        script.onerror = () => reject(new Error('Could not load Firebase SDK'))
+        script.onload = () => resolve()
+        script.onerror = () => {
+            script.remove()
+            firebaseScriptLoads.delete(src)
+            reject(new Error('Could not load Firebase SDK'))
+        }
         document.head.append(script)
     })
+    firebaseScriptLoads.set(src, loading)
+    return loading
 }
 
 async function getFirebaseDatabase() {
@@ -333,14 +343,21 @@ async function getFirebaseDatabase() {
             await loadFirebaseCompat('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js')
             await loadFirebaseCompat('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js')
             await loadFirebaseCompat('https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js')
-        })()
+        })().catch(error => {
+            firebaseReady = null
+            throw error
+        })
     }
     await firebaseReady
     const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig)
     return firebase.database(app)
 }
 
+let approvalListenerStarted = false
 async function initializeSiteAccess() {
+    accessRetry.hidden = true
+    accessStatus.textContent = 'Checking your approval…'
+
     try {
         const database = await getFirebaseDatabase()
         const auth = firebase.auth(firebase.app())
@@ -356,23 +373,32 @@ async function initializeSiteAccess() {
             await approvalRef.set(false)
         }
 
-        approvalRef.on('value', snapshot => {
-            siteAccessApproved = snapshot.val() === true
-            accessStatus.textContent = siteAccessApproved
-                ? 'Access approved'
-                : 'Access is not approved yet'
-            syncAccessGate()
-        }, error => {
-            siteAccessApproved = false
-            accessStatus.textContent = `Could not check, ${error.message}`
-            syncAccessGate()
-        })
+        if (!approvalListenerStarted) {
+            approvalListenerStarted = true
+            approvalRef.on('value', snapshot => {
+                siteAccessApproved = snapshot.val() === true
+                accessStatus.textContent = siteAccessApproved
+                    ? 'Access approved'
+                    : 'Access is not approved yet'
+                accessRetry.hidden = true
+                syncAccessGate()
+            }, error => {
+                approvalListenerStarted = false
+                siteAccessApproved = false
+                accessStatus.textContent = `Could not check approval: ${error.message}`
+                accessRetry.hidden = false
+                syncAccessGate()
+            })
+        }
     } catch (error) {
         accessStatus.textContent = `Could not check approval: ${error.message}`
-        accessUid.textContent = 'UID unavailable'
+        accessUid.textContent = chatUser?.uid || 'UID unavailable'
+        accessRetry.hidden = false
         syncAccessGate()
     }
 }
+
+accessRetry.addEventListener('click', initializeSiteAccess)
 
 async function initializeChat() {
     if (chatStarted) return
