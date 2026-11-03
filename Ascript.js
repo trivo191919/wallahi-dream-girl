@@ -225,6 +225,8 @@ const loginPanel = document.querySelector('#login-panel')
 const talkPanel = document.querySelector('#talk-panel')
 const talkStatus = document.querySelector('#talk-status')
 const talkMessages = document.querySelector('#talk-messages')
+const talkOnlineList = document.querySelector('#talk-online-list')
+const talkOnlineCount = document.querySelector('#talk-online-count')
 const talkForm = document.querySelector('#talk-form')
 const talkInput = document.querySelector('#talk-input')
 const updatesOverlay = document.querySelector('#updates-overlay')
@@ -272,6 +274,37 @@ let chatUser
 let chatStarted = false
 let firebaseReady
 let siteAccessApproved = false
+let titleNotificationTimer
+let notificationPhase = 0
+const normalDocumentTitle = document.title
+
+function colorForUid(uid) {
+    let hash = 0
+    for (const character of uid || 'guest') {
+        hash = (hash * 31 + character.charCodeAt(0)) >>> 0
+    }
+    return `hsl(${hash % 360} 85% 70%)`
+}
+
+function startTalkNotification() {
+    if (titleNotificationTimer || currentList === 'talk') return
+    const titles = ['NOTIFICATION', 'NOTIF', 'NOTIFICATE']
+    document.title = titles[notificationPhase++ % titles.length]
+    titleNotificationTimer = setInterval(() => {
+        document.title = titles[notificationPhase++ % titles.length]
+    }, 650)
+}
+
+function stopTalkNotification() {
+    clearInterval(titleNotificationTimer)
+    titleNotificationTimer = null
+    notificationPhase = 0
+    document.title = normalDocumentTitle
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && currentList === 'talk') stopTalkNotification()
+})
 
 function syncAccessGate() {
     accessGate.hidden = siteAccessApproved || !sourceSetupPanel.hidden
@@ -344,32 +377,84 @@ async function initializeSiteAccess() {
 async function initializeChat() {
     if (chatStarted) return
     chatStarted = true
-    talkStatus.textContent = 'linking up with others...'
+    talkStatus.textContent = 'Connecting to chat…'
 
     try {
         chatDatabase = await getFirebaseDatabase()
         const auth = firebase.auth(firebase.app())
         chatUser = auth.currentUser || (await auth.signInAnonymously()).user
+        const messagesRef = chatDatabase.ref('talk/messages')
+        const messagesQuery = messagesRef.orderByChild('createdAt').limitToLast(100)
+        const knownMessageKeys = new Set()
+        const initialMessages = await messagesQuery.once('value')
+        initialMessages.forEach(snapshot => knownMessageKeys.add(snapshot.key))
 
-        chatDatabase.ref('talk/messages').orderByChild('createdAt').limitToLast(100)
-            .on('child_added', snapshot => {
+        chatDatabase.ref('talk/presence').on('value', snapshot => {
+            const users = []
+            snapshot.forEach(userSnapshot => {
+                const user = userSnapshot.val()
+                if (user) {
+                    users.push({ uid: userSnapshot.key, name: user.name || 'Guest' })
+                }
+            })
+            talkOnlineCount.textContent = users.length
+            talkOnlineList.replaceChildren(...users.map(user => {
+                const entry = document.createElement('li')
+                const dot = document.createElement('span')
+                dot.className = 'talk-online-dot'
+                const name = document.createElement('span')
+                name.textContent = user.name
+                const uid = document.createElement('span')
+                uid.className = 'talk-online-uid'
+                uid.textContent = user.uid.slice(0, 8)
+                uid.style.color = colorForUid(user.uid)
+                entry.append(dot, name, uid)
+                return entry
+            }))
+        }, error => {
+            talkStatus.textContent = `Could not load online users: ${error.message}`
+        })
+
+        const connectedRef = chatDatabase.ref('.info/connected')
+        connectedRef.on('value', snapshot => {
+            if (snapshot.val() !== true) return
+            const presenceRef = chatDatabase.ref(`talk/presence/${chatUser.uid}`)
+            presenceRef.onDisconnect().remove()
+            presenceRef.set({
+                name: person,
+                connectedAt: firebase.database.ServerValue.TIMESTAMP,
+            })
+        })
+
+        messagesQuery.on('child_added', snapshot => {
+                const isNewMessage = !knownMessageKeys.has(snapshot.key)
+                knownMessageKeys.add(snapshot.key)
                 const message = snapshot.val()
                 if (!message || typeof message.text !== 'string') return
+                const uid = typeof message.uid === 'string' ? message.uid : ''
                 const line = document.createElement('li')
                 const name = document.createElement('strong')
-                name.textContent = `${message.name || 'Guest'}: `
+                name.textContent = `${message.name || 'Guest'} `
+                const uidLabel = document.createElement('span')
+                uidLabel.className = 'talk-online-uid'
+                uidLabel.textContent = uid ? `[${uid.slice(0, 8)}] ` : ''
+                uidLabel.style.color = colorForUid(uid)
                 const text = document.createElement('span')
                 text.textContent = message.text
-                line.append(name, text)
+                line.append(name, uidLabel, text)
                 talkMessages.append(line)
                 talkMessages.scrollTop = talkMessages.scrollHeight
                 talkStatus.textContent = 'Connected'
+
+                if (isNewMessage && uid && uid !== chatUser.uid && (currentList !== 'talk' || document.hidden)) {
+                    startTalkNotification()
+                }
             }, error => {
-                talkStatus.textContent = `STUPID ERROR HELP : ${error.message}`
+                talkStatus.textContent = `Could not load messages: ${error.message}`
             })
     } catch (error) {
         chatStarted = false
-        talkStatus.textContent = `ERROR HELP HELP WHAAAT STO : ${error.message}`
+        talkStatus.textContent = `Could not connect to chat: ${error.message}`
     }
 }
 
@@ -417,6 +502,11 @@ const MUSIC_OPTIONS = [
         title: 'Crystallized',
         description: 'My heart, my words, my self, my voices, my love!',
         url: `${trivoURLlink}/crystal.mp3`,
+    },
+    {
+        title: 'Paper Bouquet INSTRUMENTAL',
+        description: 'Every piece we made is my treasure.',
+        url: `${trivoURLlink}/paperbouquet.mp3`,
     },
     {
         title: 'In Hell We live, Lament.',
@@ -835,7 +925,7 @@ body.addEventListener('click', () => {
 
     welcomeWrapper.classList.add('ok')
 //really important, sets background music and then sets the timer for a specific time
-    setTimeout(() => bgMusic.currentTime=7,bgMusic.play(), 500)
+    setTimeout(() => bgMusic.currentTime=0.5,bgMusic.play(), 500)
     
 }, { once: true })
 //super duper necessary
@@ -854,8 +944,12 @@ function renderMenu(list, listName) {
     menu.innerHTML = visibleList.map((item, index) => {
         const isSelected = listName === 'music' ? index === currentMusicIndex : index === 0
         const rotation = listName === 'music' ? '' : `transform: rotate(${item.rotation});`
+        const angle = visibleList.length > 1 ? 135 + (90 * index / (visibleList.length - 1)) : 180
+        const musicPosition = listName === 'music'
+            ? `--music-x: ${76 + 39 * Math.cos(angle * Math.PI / 180)}%; --music-y: ${50 + 43 * Math.sin(angle * Math.PI / 180)}%;`
+            : ''
         return `
-        <li style="${rotation} opacity: ${item.opacity};"
+        <li style="${rotation} ${musicPosition} opacity: ${item.opacity};"
             class="${isSelected ? 'selected' : ''}"
             data-description="${item.description}">${item.title}</li>
     `
@@ -1007,6 +1101,7 @@ function openSelectedMenuItem() {
     }
 
     if (currentList === 'main' && title === 'Talk') {
+        stopTalkNotification()
         menu.hidden = true
         talkPanel.hidden = false
         currentList = 'talk'
@@ -1125,7 +1220,7 @@ function initMenuLinkOver() {
         try {
             await chatDatabase.ref('talk/messages').push({
                 uid: chatUser.uid,
-                name: `${person} - ${chatUser.uid.slice(0, 4)}`,
+                name: person,
                 text,
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
             })
@@ -1224,7 +1319,10 @@ function initMenuLinkOver() {
         isLoggedIn = true
         isAnnounceAdmin = user.person === 'V'
         announceOpen.hidden = !isAnnounceAdmin
-        person = `${user.nickname}`
+        person = user.nickname
+        if (chatDatabase && chatUser) {
+            chatDatabase.ref(`talk/presence/${chatUser.uid}`).update({ name: person }).catch(() => {})
+        }
         access.textContent = `Rank: 9`
         userLabel.textContent = `NAME: ${user.nickname}`
         loginMessage.textContent = `get, ${user.nickname}`
