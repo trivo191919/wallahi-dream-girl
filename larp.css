@@ -569,6 +569,11 @@ main.show {
 
 .talk-header h2 { margin: 0; }
 
+.talk-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
 .talk-header button,
 .talk-compose button {
     padding: 8px 12px;
