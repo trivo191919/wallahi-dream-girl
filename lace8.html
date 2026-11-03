@@ -1,0 +1,381 @@
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title id="ct">WAVE//V3</title>
+        <style>
+            .source-setup {
+                position: fixed;
+                inset: 0;
+                z-index: 10;
+                display: grid;
+                place-items: center;
+                padding: 20px;
+                background: #101010eF;
+                font: 16px Arial, Helvetica, sans-serif;
+            }
+            .source-setup[hidden] { display: none; }
+            .source-setup form {
+                width: min(420px, 100%);
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
+                padding: 24px;
+                color: #111;
+                background: #fff;
+                border: 3px solid #000;
+                box-shadow: 8px 8px 0 #f00;
+            }
+            .source-setup h1 { margin: 0 0 8px; font-size: 26px; }
+            .source-setup p { margin: 0 0 18px; }
+            .source-setup label { display: block; margin: 14px 0 6px; font-weight: bold; }
+            .source-setup select, .source-setup button {
+                width: 100%;
+                padding: 10px;
+                border: 2px solid #111;
+                background: #fff;
+                font: inherit;
+            }
+            .source-setup button { margin-top: 20px; cursor: pointer; }
+            .tos-review {
+                max-height: 38vh;
+                overflow-y: auto;
+                margin-top: 16px;
+                padding: 12px;
+                border: 2px solid #111;
+                background: #f2f2f2;
+                line-height: 1.45;
+            }
+            .tos-review[hidden] { display: none; }
+            .tos-review h2 { margin: 0 0 10px; font-size: 20px; }
+            .tos-review p { margin: 8px 0; }
+            .tos-accept { display: flex !important; align-items: flex-start; gap: 8px; margin-top: 12px !important; font-weight: normal !important; }
+            .tos-accept input { margin-top: 4px; }
+            .access-gate {
+                position: fixed;
+                inset: 0;
+                z-index: 12;
+                display: grid;
+                place-items: center;
+                padding: 20px;
+                background: #101010ef;
+                font: 16px Arial, Helvetica, sans-serif;
+            }
+            .access-gate[hidden] { display: none; }
+            .access-gate-card {
+                width: min(420px, 100%);
+                padding: 24px;
+                color: #111;
+                background: #fff;
+                border: 3px solid #000;
+                box-shadow: 8px 8px 0 #f00;
+            }
+            .access-gate-card h2 { margin: 0 0 12px; }
+            .access-gate-card p { line-height: 1.5; }
+            #access-uid {
+                display: block;
+                overflow-wrap: anywhere;
+                padding: 10px;
+                background: #eee;
+                user-select: all;
+            }
+        </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    </head>
+    <body class="passion-one-bold">
+        <section class="source-setup" id="source-setup" aria-labelledby="source-setup-title">
+            <form id="source-setup-form">
+                <h1 id="source-setup-title">startup panel</h1>
+                <p>select accordingly or else it wont work</p>
+                <label for="welcome-source">wrapper</label>
+                <select id="welcome-source" required>
+                    <option value="" disabled selected>Select a source</option>
+                    <option value="https://originfastly.jsdelivr.net">https://originfastly.jsdelivr.net/</option>
+                    <option value="https://cdn.jsdelivr.net">https://cdn.jsdelivr.net/</option>
+                </select>
+                <label for="video-source">video wrapper</label>
+                <select id="video-source" required>
+                    <option value="" disabled selected>Select a source</option>
+                    <option value="https://originfastly.jsdelivr.net">https://originfastly.jsdelivr.net/</option>
+                    <option value="https://cdn.jsdelivr.net">https://cdn.jsdelivr.net/</option>
+
+                </select>
+                <div>pls select both of the same or else it wont work lol- vv</div>
+                <div id="dependency-status" role="status" aria-live="polite" style="margin-top: 16px; line-height: 1.5;">
+                    <div id="stylesheet-status">ssu.css: waiting</div>
+                    <div id="script-status">ssu.js: waiting</div>
+                </div>
+                <section class="tos-review" id="tos-review" aria-labelledby="tos-title" hidden>
+                    <h2 id="tos-title">Terms of Service</h2>
+                    <p>By continuing, you agree to use this site and its linked content responsibly.</p>
+                    <p>This page may load media and other content from the sources you select. Those services may have their own terms and privacy practices to follow.</p>
+                    <p>The site is provided as-is. Content and availability may change, and you are responsible for deciding whether it is part of your free-time or classtime. I have layed out the warning and will not take responsibility for your action and use with this. <b>You are to not distribute or copy the site without giving credit and authorized permission from the creator or writer of such. If you are an school district administrator and wishes for me to take down my website, contact me immediately.</b></p>
+                    <label class="tos-accept" for="tos-accepted">
+                        <input id="tos-accepted" type="checkbox">
+                        <span>I have read and agree to these terms.</span>
+                    </label>
+                </section>
+                <button type="submit" id="startup-submit">Click if done</button>
+                <p style="font-size:15px; text-align:center">"You met a terrible fate, havent you?""</p>
+            </form>
+        </section>
+        <section class="access-gate" id="access-gate" aria-labelledby="access-gate-title" hidden>
+            <div class="access-gate-card">
+                <h2 id="access-gate-title">Approval required</h2>
+                <p id="access-status" role="status" aria-live="polite">Checking your approval…</p>
+                <p>Your UID — send it to the site administrator to request access:</p>
+                <code id="access-uid">Loading UID…</code>
+            </div>
+        </section>
+        <aside class="announcement-banner" id="announcement-banner" aria-live="polite" hidden>
+            <strong>ANNOUNCEMENT:</strong>
+            <span id="announcement-text"></span>
+        </aside>
+        <aside class="system-status" aria-label="System status">
+            <time id="site-clock">--:--:--</time>
+            <span id="battery-label">Battery: checking...</span>
+        </aside>
+        <div class="battery-bar" role="meter" aria-label="Battery level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="battery-fill" id="battery-fill"></div>
+        </div>
+        <div class="video-wrapper">
+            <video muted id="video">
+                <source type="video/mp4">
+            </video>
+        </div>
+        <div class="welcome-wrapper">
+           <img alt="WAVE welcome artwork">
+           <h2>WAVE//V3</h2>
+           <p>"Face the fear, Build the future." -Lcorp</p>
+           <p>Made by the Green Apple Associate</p>
+        </div>
+        <main class="main-content">
+            <div class="money-box">
+                <h2 id="access-yes">RANK: 1</h2>
+                <div class="label" id="user-label">NAME: Random Kid</div>
+                <div>Version 4.4</div>
+                <b style="font-size: 13px;">"The old days of chasing down shadows"</b>
+                <div class="announcement-admin">
+                    <button type="button" id="announce-open" hidden>Announce</button>
+                    <form id="announce-form" hidden>
+                        <label for="announce-input">Announcement (up to 500 characters)</label>
+                        <textarea id="announce-input" maxlength="500" required></textarea>
+                        <div class="announcement-buttons">
+                            <button type="submit">Publish for 3 days</button>
+                            <button type="button" id="announce-cancel">Cancel</button>
+                        </div>
+                        <p id="announce-status" role="status" aria-live="polite"></p>
+                    </form>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                
+                <ul class="menu"></ul>
+
+            </div>
+            <section class="updates-overlay" id="updates-overlay" aria-labelledby="updates-title" hidden>
+                <div class="updates-card">
+                    <h2 id="updates-title">Update log</h2>
+                    <div class="updates-log" id="updates-log"></div>
+                    <p class="updates-hint">press esc or shift to exit this page</p>
+                </div>
+            </section>
+            <section class="archives-overlay" id="archives-overlay" aria-labelledby="archives-title" hidden>
+                <div class="archives-card">
+                    <header class="archives-header">
+                        <h2 id="archives-title">Archives</h2>
+                        <p>Personal notes and pages</p>
+                    </header>
+                    <div class="archives-layout">
+                        <nav class="archives-sidebar" id="archives-sidebar" aria-label="Archive pages"></nav>
+                        <article class="archives-page" id="archives-page" aria-live="polite"></article>
+                    </div>
+                    <p class="updates-hint">press esc or shift to exit this page</p>
+                </div>
+            </section>
+            <section class="talk-panel" id="talk-panel" aria-labelledby="talk-title" hidden>
+                <header class="talk-header">
+                    <h2 id="talk-title">Talk</h2>
+                    <button type="button" id="talk-close" aria-label="Close chat">×</button>
+                </header>
+                <p id="talk-status" role="status" aria-live="polite">Connecting to chat…</p>
+                <section class="talk-roster" aria-labelledby="talk-roster-title">
+                    <h3 id="talk-roster-title">Online <span id="talk-online-count">0</span></h3>
+                    <ul id="talk-online-list"></ul>
+                </section>
+                <ol class="talk-messages" id="talk-messages" aria-live="polite"></ol>
+                <form id="talk-form">
+                    <label for="talk-input">Message</label>
+                    <div class="talk-compose">
+                        <input id="talk-input" maxlength="500" autocomplete="off" required>
+                        <button type="submit">Send</button>
+                    </div>
+                </form>
+            </section>
+            <section class="login-panel" id="login-panel" aria-labelledby="login-title" hidden>
+                <form id="login-form">
+                    <h2 id="login-title">Login</h2>
+                    <label for="login-user">User</label>
+                    <input id="login-user" name="user" autocomplete="username" required>
+                    <label for="login-pass">Password</label>
+                    <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+                    <p class="login-message" id="login-message" role="status"></p>
+                    <div class="login-buttons">
+                        <button type="submit">Sign in</button>
+                        <button type="button" id="login-cancel">Cancel</button>
+                    </div>
+                </form>
+            </section>
+            <div class="bottom-actions">
+                <div class="description-wrapper">
+                    <div class="item-description">Now Playing Threats Of The Ocean Sea</div>
+                    <div class="description-label">Wave//</div>
+                </div>
+                <div class="actions-wrapper">
+                    <div><span class="button">↑</span> <span>Up</span></div>
+                    <div><span class="button">↓ </span> <span>Down</span></div>
+                    <div><span class="button">ENT</span> <span>Go</span></div>
+                    <div><span class="button">ESC</span> <span>exit</span></div>
+
+
+                </div>
+            </div>
+        </main>
+
+        <script>
+        
+        alert('do ur work first')     
+        alert('updates will be done on the weekends now bradar')
+        alert('contact info in socials')
+
+            const sourceSetup = document.querySelector('#source-setup')
+            const sourceSetupForm = document.querySelector('#source-setup-form')
+            const launchParams = new URLSearchParams(window.location.search)
+            const launchInBlankTab = launchParams.get('wave-launch') === '1'
+
+            if (launchInBlankTab) {
+                document.querySelector('#welcome-source').value = launchParams.get('welcome') || ''
+                document.querySelector('#video-source').value = launchParams.get('video') || ''
+                document.querySelector('#tos-accepted').checked = true
+            }
+
+            sourceSetup.addEventListener('click', event => event.stopPropagation())
+            let dependenciesStarted = false
+            let stylesheetLoaded = false
+            let scriptLoaded = false
+            let tosReviewed = false
+
+            sourceSetupForm.addEventListener('submit', event => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                const button = sourceSetupForm.querySelector('button[type="submit"]')
+                if (dependenciesStarted) {
+                    sourceSetup.hidden = true
+                    return
+                }
+
+                if (!tosReviewed) {
+                    tosReviewed = true
+                    document.querySelector('#tos-review').hidden = false
+                    document.querySelector('#tos-accepted').required = true
+                    button.textContent = 'Accept TOS and load'
+                    document.querySelector('#tos-accepted').focus()
+                    return
+                }
+
+                const welcomeBase = document.querySelector('#welcome-source').value
+                const videoBase = document.querySelector('#video-source').value
+
+                if (!launchInBlankTab) {
+                    const launchTab = window.open('about:blank', '_blank')
+                    if (launchTab) {
+                        const launchURL = new URL(window.location.href)
+                        launchURL.searchParams.set('wave-launch', '1')
+                        launchURL.searchParams.set('welcome', welcomeBase)
+                        launchURL.searchParams.set('video', videoBase)
+                        launchTab.document.open()
+                        launchTab.document.write('<!doctype html><html><head><meta charset="UTF-8"><title>WAVE//V3</title><style>html,body,iframe{width:100%;height:100%;margin:0;border:0;display:block}</style></head><body></body></html>')
+                        const frame = launchTab.document.createElement('iframe')
+                        frame.title = 'WAVE'
+                        frame.src = launchURL.href
+                        launchTab.document.body.appendChild(frame)
+                        sourceSetup.hidden = true
+                        return
+                    }
+                }
+
+                window.WAVE_WELCOME_SOURCE = welcomeBase
+                window.WAVE_VIDEO_SOURCE = videoBase
+                document.querySelector('.welcome-wrapper img').src =
+                    `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest/wave.jpg`
+                
+
+
+                document.querySelector('#video source').src =
+                    `${videoBase}/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-1.mp4`
+                
+                
+                document.querySelector('#video').load()
+
+                dependenciesStarted = true
+                button.disabled = true
+                button.textContent = 'Loading...'
+
+                const assetBase = `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest`
+                const stylesheetStatus = document.querySelector('#stylesheet-status')
+                const scriptStatus = document.querySelector('#script-status')
+                const stylesheet = document.createElement('link')
+                stylesheet.rel = 'stylesheet'
+                stylesheet.href = `${assetBase}/astyles.css` //-------------Line of remembrance---------------\\
+                stylesheet.onload = () => {
+                    stylesheetLoaded = true
+                    stylesheetStatus.textContent = 'styles.css: loaded'
+                    finishLoading()
+                }
+                stylesheet.onerror = () => {
+                    stylesheetStatus.textContent = 'styles.css: failed to load, assuming its wrong thing'
+                    finishLoading()
+                }
+ //                         ${assetBase}/           copy this for src for .JS and stupid css
+                const appScript = document.createElement('script')
+                appScript.src = `${assetBase}/ascript.js`   //-------------Line of remembrance---------------\\
+                appScript.onload = () => {
+                    scriptLoaded = true
+                    scriptStatus.textContent = 'script.js: loaded!!'
+                    finishLoading()  
+                }
+                appScript.onerror = () => {
+                    scriptStatus.textContent = 'script.js: failed to load, assuming its the wrong thing too'
+                    finishLoading()
+                }
+
+                function finishLoading() {
+                    const stylesheetDone = stylesheetLoaded || stylesheetStatus.textContent.endsWith('failed to load')
+                    const scriptDone = scriptLoaded || scriptStatus.textContent.endsWith('failed to load')
+                    if (!stylesheetDone || !scriptDone) return
+                    button.disabled = false
+                    button.textContent = stylesheetLoaded && scriptLoaded ? 'Launch WAVE' : 'Continue anyway'
+                    if (launchInBlankTab) sourceSetup.hidden = true
+                }
+
+                document.head.appendChild(stylesheet)
+                document.body.appendChild(appScript)
+            })
+
+            if (launchInBlankTab) {
+                tosReviewed = true
+                requestAnimationFrame(() => sourceSetupForm.requestSubmit())
+            }
+        </script>
+    </body>
+</html>
