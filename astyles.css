@@ -226,7 +226,7 @@ main.show {
     position: absolute;
     z-index: -1;
     top: 50%;
-    left: 96%;
+    left: 76%;
     width: 270px;
     height: 270px;
     border: 10px solid #171717;
@@ -242,7 +242,7 @@ main.show {
     position: absolute;
     z-index: -1;
     top: 50%;
-    left: 96%;
+    left: 76%;
     width: 62px;
     height: 62px;
     border: 7px solid #ddd;
@@ -255,6 +255,8 @@ main.show {
 .menu.music-menu li {
     position: absolute;
     z-index: 1;
+    left: var(--music-x);
+    top: var(--music-y);
     width: max-content;
     max-width: 42%;
     padding: 8px 12px;
@@ -263,20 +265,15 @@ main.show {
     text-align: right;
     text-shadow: 1px 2px #000;
     background: #111c;
-    transform: translateY(-50%) !important;
+    transform: translate(-50%, -50%) !important;
 }
 
-.menu.music-menu li:nth-child(1) { left: 40%; top: 15%; }
-.menu.music-menu li:nth-child(2) { left: 36%; top: 38%; }
-.menu.music-menu li:nth-child(3) { left: 34%; top: 62%; }
-.menu.music-menu li:nth-child(4) { left: 40%; top: 85%; }
-.menu.music-menu li:nth-child(5) { left: 45%; top: 100%; }
-
-.menu.music-menu li.selected {
+ .menu.music-menu li.selected {
+    position: absolute;
     padding: 8px 12px;
     color: #fff;
     background: #d82020e8;
-    transform: translateY(-50%) scale(1.06) !important;
+    transform: translate(-50%, -50%) scale(1.06) !important;
 }
 
 .menu.music-menu li.selected::before,
@@ -304,13 +301,9 @@ main.show {
 
     .menu.music-menu li {
         max-width: 52%;
-        font-size: 15px;
+        font-size: 13px;
     }
 
-    .menu.music-menu li:nth-child(1) { left: 0; top: 15%; }
-    .menu.music-menu li:nth-child(2) { left: 4%; top: 38%; }
-    .menu.music-menu li:nth-child(3) { left: 7%; top: 62%; }
-    .menu.music-menu li:nth-child(4) { left: 3%; top: 85%; }
 }
 
 @keyframes record-spin {
@@ -587,6 +580,19 @@ main.show {
 }
 
 #talk-status { min-height: 1.2em; color: #c8b5dc; }
+
+.talk-roster {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    background: #160d20;
+    border: 1px solid #704b91;
+}
+
+.talk-roster h3 { margin: 0 0 8px; font-size: 15px; }
+#talk-online-list { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0; list-style: none; }
+#talk-online-list li { display: flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }
+.talk-online-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #62e889; }
+.talk-online-uid { font: 12px monospace; opacity: 0.8; }
 
 .talk-messages {
     min-height: 180px;
