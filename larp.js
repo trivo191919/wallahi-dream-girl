@@ -224,6 +224,7 @@ const main = document.querySelector('main')
 const loginPanel = document.querySelector('#login-panel')
 const talkPanel = document.querySelector('#talk-panel')
 const talkStatus = document.querySelector('#talk-status')
+const talkNotificationToggle = document.querySelector('#talk-notification-toggle')
 const talkMessages = document.querySelector('#talk-messages')
 const talkOnlineList = document.querySelector('#talk-online-list')
 const talkOnlineCount = document.querySelector('#talk-online-count')
@@ -275,9 +276,19 @@ let chatUser
 let chatStarted = false
 let firebaseReady
 let siteAccessApproved = false
-let titleNotificationTimer
-let notificationPhase = 0
-const normalDocumentTitle = document.title
+let talkNotificationsEnabled = true
+try {
+    talkNotificationsEnabled = localStorage.getItem('wave-talk-notifications-disabled') !== 'true'
+} catch {}
+
+function updateTalkNotificationToggle() {
+    talkNotificationToggle.textContent = talkNotificationsEnabled
+        ? 'Disable notifications'
+        : 'Enable notifications'
+    talkNotificationToggle.setAttribute('aria-pressed', String(!talkNotificationsEnabled))
+}
+
+updateTalkNotificationToggle()
 
 function colorForUid(uid) {
     let hash = 0
@@ -287,25 +298,27 @@ function colorForUid(uid) {
     return `hsl(${hash % 360} 85% 70%)`
 }
 
-function startTalkNotification() {
-    if (titleNotificationTimer || currentList === 'talk') return
-    const titles = ['NOTIFICATION', 'NOTIF', 'NOTIFICATE']
-    document.title = titles[notificationPhase++ % titles.length]
-    titleNotificationTimer = setInterval(() => {
-        document.title = titles[notificationPhase++ % titles.length]
-    }, 650)
+async function requestTalkNotificationPermission() {
+    if (!talkNotificationsEnabled || !('Notification' in window) || Notification.permission !== 'default') return
+    try {
+        await Notification.requestPermission()
+    } catch (error) {
+        console.warn('Could not request notification permission:', error)
+    }
 }
 
-function stopTalkNotification() {
-    clearInterval(titleNotificationTimer)
-    titleNotificationTimer = null
-    notificationPhase = 0
-    document.title = normalDocumentTitle
-}
+function notifyTalkMessage(message, key) {
+    if (!talkNotificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return
 
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && currentList === 'talk') stopTalkNotification()
-})
+    const notification = new Notification('New Talk message', {
+        body: `${message.name || 'Guest'}: ${message.text}`,
+        tag: `wave-talk-${key}`,
+    })
+    notification.addEventListener('click', () => {
+        window.focus()
+        notification.close()
+    })
+}
 
 function syncAccessGate() {
     accessGate.hidden = siteAccessApproved || !sourceSetupPanel.hidden
@@ -413,7 +426,32 @@ async function initializeChat() {
         const messagesQuery = messagesRef.orderByChild('createdAt').limitToLast(100)
         const knownMessageKeys = new Set()
         const initialMessages = await messagesQuery.once('value')
-        initialMessages.forEach(snapshot => knownMessageKeys.add(snapshot.key))
+
+        function createTalkMessageLine(snapshot) {
+            const message = snapshot.val()
+            if (!message || typeof message.text !== 'string') return null
+            const uid = typeof message.uid === 'string' ? message.uid : ''
+            const line = document.createElement('li')
+            const name = document.createElement('strong')
+            name.textContent = `${message.name || 'Guest'} `
+            const uidLabel = document.createElement('span')
+            uidLabel.className = 'talk-online-uid'
+            uidLabel.textContent = uid ? `[${uid.slice(0, 8)}] ` : ''
+            uidLabel.style.color = colorForUid(uid)
+            const text = document.createElement('span')
+            text.textContent = message.text
+            line.append(name, uidLabel, text)
+            return { line, message, uid }
+        }
+
+        const history = document.createDocumentFragment()
+        initialMessages.forEach(snapshot => {
+            knownMessageKeys.add(snapshot.key)
+            const rendered = createTalkMessageLine(snapshot)
+            if (rendered) history.append(rendered.line)
+        })
+        talkMessages.replaceChildren(history)
+        talkMessages.scrollTop = talkMessages.scrollHeight
 
         chatDatabase.ref('talk/presence').on('value', snapshot => {
             const users = []
@@ -453,27 +491,17 @@ async function initializeChat() {
         })
 
         messagesQuery.on('child_added', snapshot => {
-                const isNewMessage = !knownMessageKeys.has(snapshot.key)
+                if (knownMessageKeys.has(snapshot.key)) return
                 knownMessageKeys.add(snapshot.key)
-                const message = snapshot.val()
-                if (!message || typeof message.text !== 'string') return
-                const uid = typeof message.uid === 'string' ? message.uid : ''
-                const line = document.createElement('li')
-                const name = document.createElement('strong')
-                name.textContent = `${message.name || 'Guest'} `
-                const uidLabel = document.createElement('span')
-                uidLabel.className = 'talk-online-uid'
-                uidLabel.textContent = uid ? `[${uid.slice(0, 8)}] ` : ''
-                uidLabel.style.color = colorForUid(uid)
-                const text = document.createElement('span')
-                text.textContent = message.text
-                line.append(name, uidLabel, text)
-                talkMessages.append(line)
+
+                const rendered = createTalkMessageLine(snapshot)
+                if (!rendered) return
+                talkMessages.append(rendered.line)
                 talkMessages.scrollTop = talkMessages.scrollHeight
                 talkStatus.textContent = 'Connected'
 
-                if (isNewMessage && uid && uid !== chatUser.uid && (currentList !== 'talk' || document.hidden)) {
-                    startTalkNotification()
+                if (rendered.uid && rendered.uid !== chatUser.uid) {
+                    notifyTalkMessage(rendered.message, snapshot.key)
                 }
             }, error => {
                 talkStatus.textContent = `Could not load messages: ${error.message}`
@@ -1127,7 +1155,7 @@ function openSelectedMenuItem() {
     }
 
     if (currentList === 'main' && title === 'Talk') {
-        stopTalkNotification()
+        requestTalkNotificationPermission()
         menu.hidden = true
         talkPanel.hidden = false
         currentList = 'talk'
@@ -1198,6 +1226,14 @@ function openSelectedMenuItem() {
 
 function initMenuLinkOver() {
     document.querySelector('#talk-close').addEventListener('click', closeTalk)
+    talkNotificationToggle.addEventListener('click', () => {
+        talkNotificationsEnabled = !talkNotificationsEnabled
+        try {
+            localStorage.setItem('wave-talk-notifications-disabled', String(!talkNotificationsEnabled))
+        } catch {}
+        updateTalkNotificationToggle()
+        if (talkNotificationsEnabled) requestTalkNotificationPermission()
+    })
 
     announceOpen.addEventListener('click', () => {
         announceForm.hidden = false
