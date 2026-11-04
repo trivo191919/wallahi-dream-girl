@@ -235,6 +235,9 @@ const updatesLog = document.querySelector('#updates-log')
 const archivesOverlay = document.querySelector('#archives-overlay')
 const archivesSidebar = document.querySelector('#archives-sidebar')
 const archivesPage = document.querySelector('#archives-page')
+const settingsOverlay = document.querySelector('#settings-overlay')
+const settingsSidebar = document.querySelector('#settings-sidebar')
+const settingsOptions = document.querySelector('#settings-options')
 const loginForm = document.querySelector('#login-form')
 const loginUser = document.querySelector('#login-user')
 const loginPass = document.querySelector('#login-pass')
@@ -569,64 +572,103 @@ const MUSIC_OPTIONS = [
     },
 ]
 
-const bgMusic = new Audio(MUSIC_OPTIONS[4].url);
+const bgMusic = new Audio(MUSIC_OPTIONS[4].url)
 
+const DEFAULT_SETTINGS = {
+    rememberLogin: true,
+    backgroundMusic: true,
+    accentColor: '#68fcfe',
+    videoOpacity: 93,
+    largeMenu: false,
+    highContrast: false,
+    reducedMotion: false,
+}
 
+let settings = { ...DEFAULT_SETTINGS }
+try {
+    settings = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem('wave-settings') || '{}') }
+} catch {}
 
+const SETTING_CATEGORIES = [
+    {
+        title: 'Main',
+        settings: [
+            { key: 'rememberLogin', label: 'Remember login', description: 'dont need to sign in again', type: 'checkbox' },
+            { key: 'backgroundMusic', label: 'Background music', description: 'music!!', type: 'checkbox' },
+        ],
+    },
+    {
+        title: 'Looks',
+        settings: [
+            { key: 'accentColor', label: 'Menu accent', description: 'color for buttons yo', type: 'select', options: [['#68fcfe', 'Wave'], ['#ffb6d9', 'Pink'], ['#5390A6', 'Mint'], ['#F2DF33', 'Gold']] },
+            { key: 'videoOpacity', label: 'Background brightness', description: 'make background transparent idk', type: 'range', min: 35, max: 100, suffix: '%' },
+        ],
+    },
+    {
+        title: 'Accessibility',
+        settings: [
+            { key: 'largeMenu', label: 'Larger menu text', description: 'makes main menu bigger', type: 'checkbox' },
+            { key: 'highContrast', label: 'High contrast menu', description: 'dark outline text woohoo', type: 'checkbox' },
+            { key: 'reducedMotion', label: 'Reduce motion', description: 'reduces animation, good for battery i guess', type: 'checkbox' },
+        ],
+    },
+]
 
+function saveSettings() {
+    try {
+        localStorage.setItem('wave-settings', JSON.stringify(settings))
+        if (!settings.rememberLogin) localStorage.removeItem('wave-saved-user')
+    } catch {}
+}
 
+function applySettings() {
+    document.body.style.setProperty('--wave-accent', settings.accentColor)
+    document.body.classList.toggle('settings-large-menu', settings.largeMenu)
+    document.body.classList.toggle('settings-high-contrast', settings.highContrast)
+    document.body.classList.toggle('settings-reduced-motion', settings.reducedMotion)
+    video.style.opacity = String(settings.videoOpacity / 100)
+    bgMusic.muted = !settings.backgroundMusic
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+applySettings()
 
 const USERS = [
     {
         person: 'V',
         pass: 'x01003829',
-        nickname: 'Van Vo',
+        nickname: 'Van Vo🌙🗝️',
     },
 
     {
         person: 'long',
         pass: 'loganisok',
-        nickname: 'longan fruit',
+        nickname: 'Logan ⚘',
     },
     {
         person: 'warren',
-        pass: 'iamlazy',
-        nickname: 'Hayes',
+        pass: 'boomer',
+        nickname: 'ou boy',
     },
     {
         person: 'ava',
         pass: 'something',
-        nickname: 'Ava',
+        nickname: 'Ava ⚘',
     },
     {
-        person: 'amari',
-        pass: 'bummiestboy',
-        nickname: 'amari from omori',
+        person: 'kevin',
+        pass: 'klevprime',
+        nickname: 'kevin prime',
     },
         {
         person: 'deronte',
-        pass: 'dingusberry',
-        nickname: 'Deronte',
+        pass: 'sharkboy1',
+        nickname: 'Deronte OU',
     
     },
     {
-        person: 'dema',
-        pass: 'dmar',
-        nickname: 'Demario',
+        person: 'tavi',
+        pass:   '2axles',
+        nickname: 'car wizard',
     
     },
     
@@ -919,6 +961,8 @@ const ARCHIVE_PAGES = [
 
 
 const UPDATE_LOG = [ 
+    { text: 'Version 4.7, fixed a fatal bug ', color: '#a8e6cf' },
+    { text: 'Version 4.6, Talk refined, reforemd the theme channel, added like 2 more people cuz yes.', color: '#a8e6cf' },
     { text: 'Version 4.5, The Security and Talk update, self explainatory', color: '#a8e6cf' },
     { text: 'Version 4.4, added two games, bug fixed', color: '#d7b6ff' },
         { text: 'Version 4.3, Added five games and added page function for Methods, fixed no bugs', color: '#d7b6ff' },
@@ -1009,10 +1053,12 @@ function renderMenu(list, listName) {
     `
     }).join('')
     menu.querySelectorAll('li').forEach((item, index) => {
-        item.animate(
-            [{ opacity: 0 }, { opacity: visibleList[index].opacity }],
-            { duration: 450, delay: index * 130, easing: 'ease-out', fill: 'both' }
-        )
+        if (!settings.reducedMotion) {
+            item.animate(
+                [{ opacity: 0 }, { opacity: visibleList[index].opacity }],
+                { duration: 450, delay: index * 130, easing: 'ease-out', fill: 'both' }
+            )
+        }
     })
 
     let pagination = menuWrapper.querySelector('.methods-pagination')
@@ -1125,6 +1171,91 @@ function closeArchives() {
     renderMenu(MENU_LINKS, 'main')
 }
 
+let currentSettingsCategory = 0
+function showSettingsCategory(index) {
+    currentSettingsCategory = index
+    const category = SETTING_CATEGORIES[index]
+    settingsSidebar.replaceChildren(...SETTING_CATEGORIES.map((item, itemIndex) => {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.className = 'settings-category'
+        button.textContent = item.title
+        if (itemIndex === index) button.setAttribute('aria-current', 'page')
+        button.addEventListener('click', () => showSettingsCategory(itemIndex))
+        return button
+    }))
+
+    settingsOptions.replaceChildren()
+    const heading = document.createElement('h3')
+    heading.textContent = category.title
+    settingsOptions.append(heading)
+
+    category.settings.forEach(setting => {
+        const row = document.createElement('div')
+        row.className = 'settings-row'
+        const copy = document.createElement('div')
+        const label = document.createElement('strong')
+        label.textContent = setting.label
+        const description = document.createElement('p')
+        description.textContent = setting.description
+        copy.append(label, description)
+
+        let control
+        if (setting.type === 'checkbox') {
+            control = document.createElement('input')
+            control.type = 'checkbox'
+            control.checked = Boolean(settings[setting.key])
+        } else if (setting.type === 'select') {
+            control = document.createElement('select')
+            setting.options.forEach(([value, text]) => {
+                const option = document.createElement('option')
+                option.value = value
+                option.textContent = text
+                control.append(option)
+            })
+            control.value = settings[setting.key]
+        } else {
+            control = document.createElement('input')
+            control.type = 'range'
+            control.min = setting.min
+            control.max = setting.max
+            control.value = settings[setting.key]
+            const valueLabel = document.createElement('span')
+            valueLabel.className = 'settings-value'
+            valueLabel.textContent = `${control.value}${setting.suffix || ''}`
+            control.addEventListener('input', () => {
+                valueLabel.textContent = `${control.value}${setting.suffix || ''}`
+            })
+            row.append(copy, control, valueLabel)
+        }
+
+        control.setAttribute('aria-label', setting.label)
+        if (setting.type !== 'range') row.append(copy, control)
+        const update = () => {
+            settings[setting.key] = setting.type === 'checkbox'
+                ? control.checked
+                : setting.type === 'range' ? Number(control.value) : control.value
+            saveSettings()
+            applySettings()
+        }
+        control.addEventListener(setting.type === 'range' ? 'input' : 'change', update)
+        settingsOptions.append(row)
+    })
+}
+
+function openSettings() {
+    menu.hidden = true
+    settingsOverlay.hidden = false
+    currentList = 'settings'
+    showSettingsCategory(currentSettingsCategory)
+}
+
+function closeSettings() {
+    settingsOverlay.hidden = true
+    menu.hidden = false
+    renderMenu(MENU_LINKS, 'main')
+}
+
 function closeTalk() {
     talkPanel.hidden = true
     menu.hidden = false
@@ -1151,6 +1282,11 @@ function openSelectedMenuItem() {
 
     if (currentList === 'main' && title === 'Themes') {
         renderMenu(MUSIC_OPTIONS, 'music')
+        return
+    }
+
+    if (currentList === 'main' && title === 'Settings') {
+        openSettings()
         return
     }
 
@@ -1224,7 +1360,46 @@ function openSelectedMenuItem() {
     loginUser.focus()
 }
 
+function finishLogin(user, showStatus = true) {
+    isLoggedIn = true
+    isAnnounceAdmin = user.person === 'V'
+    announceOpen.hidden = !isAnnounceAdmin
+    person = user.nickname
+    if (settings.rememberLogin) {
+        try { localStorage.setItem('wave-saved-user', user.person) } catch {}
+    } else {
+        try { localStorage.removeItem('wave-saved-user') } catch {}
+    }
+    if (chatDatabase && chatUser) {
+        chatDatabase.ref(`talk/presence/${chatUser.uid}`).update({ name: person }).catch(() => {})
+    }
+    access.textContent = 'Rank: 9'
+    userLabel.textContent = `NAME: ${user.nickname}`
+    loginMessage.textContent = showStatus ? `get, ${user.nickname}` : ''
+    loginPanel.hidden = true
+    if (showStatus && openMethodsAfterLogin) {
+        openMethodsAfterLogin = false
+        renderMenu(METHODS_LIST, 'methods')
+    }
+}
+
+function restoreSavedLogin() {
+    let savedPerson = ''
+    try { savedPerson = localStorage.getItem('wave-saved-user') || '' } catch {}
+    if (!settings.rememberLogin) {
+        try { localStorage.removeItem('wave-saved-user') } catch {}
+        return
+    }
+    if (!savedPerson) return
+    const user = USERS.find(account => account.person === savedPerson)
+    if (user) finishLogin(user, false)
+    else {
+        try { localStorage.removeItem('wave-saved-user') } catch {}
+    }
+}
+
 function initMenuLinkOver() {
+    document.querySelector('#settings-close').addEventListener('click', closeSettings)
     document.querySelector('#talk-close').addEventListener('click', closeTalk)
     talkNotificationToggle.addEventListener('click', () => {
         talkNotificationsEnabled = !talkNotificationsEnabled
@@ -1309,14 +1484,12 @@ function initMenuLinkOver() {
         if (e.key === 'Escape' && currentList !== 'main') {
             if (currentList === 'archives') closeArchives()
             else if (currentList === 'talk') closeTalk()
-            else closeUpdates()
-            return
-        }
-
-        if (e.key === 'Escape' && currentList !== 'main') {
-            if (currentList === 'archives') closeArchives()
-            else if (currentList === 'talk') closeTalk()
-            else closeUpdates()
+            else if (currentList === 'settings') closeSettings()
+            else if (currentList === 'updates' || currentList === 'closing-updates') closeUpdates()
+            else {
+                renderMenu(MENU_LINKS, 'main')
+                currentList = 'main'
+            }
             return
         }
         /*
@@ -1328,7 +1501,7 @@ function initMenuLinkOver() {
 */
 
 
-        if (currentList === 'updates' || currentList === 'archives' || currentList === 'talk') return
+        if (currentList === 'updates' || currentList === 'archives' || currentList === 'talk' || currentList === 'settings') return
 
         const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
         if (!loginPanel.hidden || !verticalKey) return
@@ -1352,7 +1525,7 @@ function initMenuLinkOver() {
 
     document.addEventListener('keydown', (e) => {
         if (!siteAccessApproved) return
-        if (currentList === 'archives' || currentList === 'talk') return
+        if (currentList === 'archives' || currentList === 'talk' || currentList === 'updates' || currentList === 'settings') return
         if (loginPanel.hidden && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             openSelectedMenuItem()
@@ -1378,21 +1551,7 @@ function initMenuLinkOver() {
             return
         }
         
-        isLoggedIn = true
-        isAnnounceAdmin = user.person === 'V'
-        announceOpen.hidden = !isAnnounceAdmin
-        person = user.nickname
-        if (chatDatabase && chatUser) {
-            chatDatabase.ref(`talk/presence/${chatUser.uid}`).update({ name: person }).catch(() => {})
-        }
-        access.textContent = `Rank: 9`
-        userLabel.textContent = `NAME: ${user.nickname}`
-        loginMessage.textContent = `get, ${user.nickname}`
-        loginPanel.hidden = true
-        if (openMethodsAfterLogin) {
-            openMethodsAfterLogin = false
-            renderMenu(METHODS_LIST, 'methods')
-        }
+        finishLogin(user)
     })
 }
 
@@ -1447,6 +1606,7 @@ if (navigator.getBattery) {
 
 insertListItens()
 initMenuLinkOver()
+restoreSavedLogin()
 initializeSiteAccess()
 initializeAnnouncements().catch(error => {
     announceStatus.textContent = `${error.message}`
