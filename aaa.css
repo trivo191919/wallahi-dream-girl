@@ -668,79 +668,154 @@ body { --wave-accent: #68fcfe; }
     z-index: 4;
     top: 50%;
     left: 50%;
-    width: min(520px, calc(100vw - 32px));
-    max-height: min(75vh, 620px);
+    width: min(980px, calc(100vw - 32px));
+    height: min(680px, calc(100vh - 40px));
     transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    color: #f4edff;
-    background: #241333;
-    border: 2px solid #704b91;
-    box-shadow: 10px 10px 0 #10091a;
-    font: 16px Arial, Helvetica, sans-serif;
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    overflow: hidden;
+    color: #dbdee1;
+    background: #313338;
+    border: 1px solid #1e1f22;
+    border-radius: 10px;
+    box-shadow: 0 18px 60px #0009;
+    font: 15px Arial, Helvetica, sans-serif;
 }
 
 .talk-panel[hidden] { display: none; }
 
+.talk-sidebar {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 10px;
+    background: #2b2d31;
+}
+
+.talk-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 16px;
+    border-bottom: 1px solid #3f4147;
+}
+
+.talk-sidebar-header h2 { margin: 0; color: #f2f3f5; font-size: 17px; }
+.talk-sidebar-header button,
+.talk-header button {
+    padding: 7px 10px;
+    color: #dbdee1;
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    font: inherit;
+    cursor: pointer;
+}
+.talk-sidebar-header button:hover,
+.talk-header button:hover { background: #404249; }
+
+.talk-channel {
+    width: 100%;
+    margin: 14px 0 22px;
+    padding: 10px;
+    color: #dbdee1;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 5px;
+    font: inherit;
+    cursor: pointer;
+}
+.talk-channel:hover,
+.talk-channel[aria-current="page"] { color: #fff; background: #404249; }
+.talk-channel span { margin-right: 8px; color: #949ba4; font-size: 20px; }
+
+.talk-roster { padding: 0 4px; }
+.talk-roster h3 { margin: 0 0 8px; color: #949ba4; font-size: 11px; }
+#talk-online-list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+#talk-online-list li { min-width: 0; }
+.talk-online-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px;
+    overflow: hidden;
+    color: #b5bac1;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 5px;
+    font: inherit;
+    cursor: pointer;
+}
+.talk-online-user:hover,
+.talk-online-user[aria-current="true"] { color: #fff; background: #404249; }
+.talk-online-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.talk-online-dot { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: #23a55a; }
+.talk-online-uid { margin-left: auto; font: 10px monospace; opacity: 0.65; }
+
+.talk-chat { display: flex; min-width: 0; min-height: 0; flex-direction: column; }
 .talk-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    min-height: 68px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #26272b;
+    box-shadow: 0 1px 3px #0002;
 }
-
-.talk-header h2 { margin: 0; }
-
-.talk-header-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.talk-header button,
-.talk-compose button {
-    padding: 8px 12px;
-    color: inherit;
-    background: #4a2c60;
-    border: 1px solid #b88bd6;
-    font: inherit;
-    cursor: pointer;
-}
-
-#talk-status { min-height: 1.2em; color: #c8b5dc; }
-
-.talk-roster {
-    margin: 0 0 12px;
-    padding: 10px 12px;
-    background: #160d20;
-    border: 1px solid #704b91;
-}
-
-.talk-roster h3 { margin: 0 0 8px; font-size: 15px; }
-#talk-online-list { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0; list-style: none; }
-#talk-online-list li { display: flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }
-.talk-online-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #62e889; }
-.talk-online-uid { font: 12px monospace; opacity: 0.8; }
+.talk-header h2 { margin: 0; color: #f2f3f5; font-size: 17px; }
+#talk-status { min-height: 1em; margin: 4px 0 0; color: #949ba4; font-size: 12px; }
+.talk-header button { flex: 0 0 auto; font-size: 12px; }
 
 .talk-messages {
-    min-height: 180px;
-    max-height: 45vh;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
     overflow-y: auto;
-    margin: 0 0 14px;
-    padding: 12px 12px 12px 32px;
-    background: #160d20;
+    margin: 0;
+    padding: 18px 22px;
+    list-style: none;
+    background: #313338;
 }
-
-.talk-messages li { margin: 0 0 10px; overflow-wrap: anywhere; }
-.talk-messages strong { color: #ffe29a; }
-
-#talk-form label { display: block; margin-bottom: 6px; }
-
-.talk-compose { display: flex; gap: 8px; }
+.talk-messages li { margin: 0 0 14px; overflow-wrap: anywhere; line-height: 1.5; }
+.talk-messages strong { margin-right: 5px; color: #f2f3f5; }
+.talk-compose { display: flex; gap: 10px; margin: 0 18px 18px; padding: 10px; background: #383a40; border-radius: 8px; }
 .talk-compose input {
     flex: 1;
     min-width: 0;
-    padding: 9px;
+    padding: 4px;
+    color: #f2f3f5;
+    background: transparent;
+    border: 0;
+    outline: none;
     font: inherit;
+}
+.talk-compose input::placeholder { color: #949ba4; }
+.talk-compose button {
+    padding: 7px 12px;
+    color: #fff;
+    background: #5865f2;
+    border: 0;
+    border-radius: 5px;
+    font: inherit;
+    cursor: pointer;
+}
+.talk-compose button:hover { background: #4752c4; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+@media (max-width: 600px) {
+    .talk-panel { width: calc(100vw - 16px); height: calc(100vh - 16px); grid-template-columns: 145px minmax(0, 1fr); }
+    .talk-sidebar { padding: 12px 6px; }
+    .talk-sidebar-header { padding: 0 4px 12px; }
+    .talk-sidebar-header h2 { font-size: 14px; }
+    .talk-online-uid { display: none; }
+    .talk-header { padding: 10px; }
+    .talk-header button { padding: 6px; }
+    .talk-messages { padding: 14px 10px; }
+    .talk-compose { margin: 0 8px 10px; }
 }
 
 .login-panel {
