@@ -724,7 +724,7 @@ const USERS = [
     {
         person: 'warren',
         pass: 'boomer',
-        nickname: 'ou boy',
+        nickname: 'OU boy',
     },
     {
         person: 'ava',
@@ -746,6 +746,12 @@ const USERS = [
         person: 'tavi',
         pass:   '2axles',
         nickname: 'car wizard',
+    
+    },
+    {
+        person: 'grant',
+        pass:   'granted',
+        nickname: 'grant the ant',
     
     },
     
