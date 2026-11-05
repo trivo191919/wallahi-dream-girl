@@ -277,6 +277,11 @@ const audio = new Audio(`${videoAssetBase}/sounds/menu.mp3`)
 let chatDatabase
 let chatUser
 let chatStarted = false
+let activeDM = null
+const dmConversations = new Map()
+let publicTalkLines = []
+const knownMessageKeys = new Set()
+let dmInboxListenerStarted = false
 let firebaseReady
 let siteAccessApproved = false
 let talkNotificationsEnabled = true
@@ -416,6 +421,52 @@ async function initializeSiteAccess() {
 
 accessRetry.addEventListener('click', initializeSiteAccess)
 
+function makeTalkLine(message, own = false) {
+    const line = document.createElement('li')
+    const name = document.createElement('strong')
+    name.textContent = `${own ? 'You' : message.name || 'Guest'} `
+    const uidLabel = document.createElement('span')
+    uidLabel.className = 'talk-online-uid'
+    uidLabel.textContent = message.uid ? `[${message.uid.slice(0, 8)}] ` : ''
+    if (message.uid) uidLabel.style.color = colorForUid(message.uid)
+    const text = document.createElement('span')
+    text.textContent = message.text
+    line.append(name, uidLabel, text)
+    return line
+}
+
+function showTalkConversation(user = null) {
+    activeDM = user
+    const isDM = Boolean(user)
+    document.querySelector('#talk-public-channel').setAttribute('aria-current', String(!isDM))
+    document.querySelector('#talk-title').textContent = isDM ? `@ ${user.name}` : '# Public chat'
+    talkInput.placeholder = isDM ? `Message @${user.name}` : 'Message # public-chat'
+    talkMessages.replaceChildren()
+
+    if (isDM) {
+        const history = dmConversations.get(user.uid) || []
+        history.forEach(message => talkMessages.append(makeTalkLine(message, message.own)))
+    } else {
+        talkMessages.replaceChildren(...publicTalkLines)
+    }
+    talkMessages.scrollTop = talkMessages.scrollHeight
+
+    document.querySelectorAll('.talk-online-user').forEach(button => {
+        button.setAttribute('aria-current', String(button.dataset.uid === user?.uid))
+    })
+    talkInput.focus()
+}
+
+function storeDMMessage(uid, message) {
+    const conversation = dmConversations.get(uid) || []
+    conversation.push(message)
+    dmConversations.set(uid, conversation)
+    if (activeDM?.uid === uid) {
+        talkMessages.append(makeTalkLine(message, message.own))
+        talkMessages.scrollTop = talkMessages.scrollHeight
+    }
+}
+
 async function initializeChat() {
     if (chatStarted) return
     chatStarted = true
@@ -425,57 +476,80 @@ async function initializeChat() {
         chatDatabase = await getFirebaseDatabase()
         const auth = firebase.auth(firebase.app())
         chatUser = auth.currentUser || (await auth.signInAnonymously()).user
+        if (!dmInboxListenerStarted) {
+            dmInboxListenerStarted = true
+            chatDatabase.ref(`talk/dms/${chatUser.uid}`).on('child_added', snapshot => {
+                const message = snapshot.val()
+                const senderUid = typeof message?.uid === 'string' ? message.uid : ''
+                if (senderUid && senderUid !== chatUser.uid && typeof message.text === 'string') {
+                    storeDMMessage(senderUid, {
+                        uid: senderUid,
+                        name: message.name || 'Guest',
+                        text: message.text,
+                        own: false,
+                    })
+                }
+                snapshot.ref.remove().catch(error => console.warn('Could not remove delivered DM:', error))
+            }, error => {
+                talkStatus.textContent = `Could not load DMs: ${error.message}`
+                dmInboxListenerStarted = false
+            })
+        }
         const messagesRef = chatDatabase.ref('talk/messages')
         const messagesQuery = messagesRef.orderByChild('createdAt').limitToLast(100)
-        const knownMessageKeys = new Set()
+        knownMessageKeys.clear()
         const initialMessages = await messagesQuery.once('value')
 
         function createTalkMessageLine(snapshot) {
             const message = snapshot.val()
             if (!message || typeof message.text !== 'string') return null
             const uid = typeof message.uid === 'string' ? message.uid : ''
-            const line = document.createElement('li')
-            const name = document.createElement('strong')
-            name.textContent = `${message.name || 'Guest'} `
-            const uidLabel = document.createElement('span')
-            uidLabel.className = 'talk-online-uid'
-            uidLabel.textContent = uid ? `[${uid.slice(0, 8)}] ` : ''
-            uidLabel.style.color = colorForUid(uid)
-            const text = document.createElement('span')
-            text.textContent = message.text
-            line.append(name, uidLabel, text)
+            const line = makeTalkLine({ ...message, uid })
             return { line, message, uid }
         }
 
-        const history = document.createDocumentFragment()
+        publicTalkLines = []
         initialMessages.forEach(snapshot => {
             knownMessageKeys.add(snapshot.key)
             const rendered = createTalkMessageLine(snapshot)
-            if (rendered) history.append(rendered.line)
+            if (rendered) publicTalkLines.push(rendered.line)
         })
-        talkMessages.replaceChildren(history)
+        if (!activeDM) talkMessages.replaceChildren(...publicTalkLines)
         talkMessages.scrollTop = talkMessages.scrollHeight
 
         chatDatabase.ref('talk/presence').on('value', snapshot => {
             const users = []
             snapshot.forEach(userSnapshot => {
                 const user = userSnapshot.val()
-                if (user) {
-                    users.push({ uid: userSnapshot.key, name: user.name || 'Guest' })
-                }
+                if (user) users.push({ uid: userSnapshot.key, name: user.name || 'Guest' })
             })
             talkOnlineCount.textContent = users.length
             talkOnlineList.replaceChildren(...users.map(user => {
                 const entry = document.createElement('li')
+                const button = document.createElement('button')
+                button.type = 'button'
+                button.className = 'talk-online-user'
+                button.dataset.uid = user.uid
+                button.setAttribute('aria-current', String(activeDM?.uid === user.uid))
+                button.title = 'Click to send a direct message'
                 const dot = document.createElement('span')
                 dot.className = 'talk-online-dot'
                 const name = document.createElement('span')
+                name.className = 'talk-online-name'
                 name.textContent = user.name
                 const uid = document.createElement('span')
                 uid.className = 'talk-online-uid'
                 uid.textContent = user.uid.slice(0, 8)
                 uid.style.color = colorForUid(user.uid)
-                entry.append(dot, name, uid)
+                button.append(dot, name, uid)
+                button.addEventListener('click', () => {
+                    if (user.uid === chatUser.uid) {
+                        talkStatus.textContent = 'Choose another online user to start a DM.'
+                        return
+                    }
+                    showTalkConversation(user)
+                })
+                entry.append(button)
                 return entry
             }))
         }, error => {
@@ -499,8 +573,11 @@ async function initializeChat() {
 
                 const rendered = createTalkMessageLine(snapshot)
                 if (!rendered) return
-                talkMessages.append(rendered.line)
-                talkMessages.scrollTop = talkMessages.scrollHeight
+                publicTalkLines.push(rendered.line)
+                if (!activeDM) {
+                    talkMessages.append(rendered.line)
+                    talkMessages.scrollTop = talkMessages.scrollHeight
+                }
                 talkStatus.textContent = 'Connected'
 
                 if (rendered.uid && rendered.uid !== chatUser.uid) {
@@ -566,7 +643,7 @@ const MUSIC_OPTIONS = [
         url: `${trivoURLlink}/paperbouquet.mp3`,
     },
     {
-        title: 'In Hell We live, Lament.',
+        title: 'In ***** We live, Lament.',
         description: 'Lament, if you wanted me to live!',
         url: `${trivoURLlink}/lament.mp3`,
     },
@@ -636,7 +713,7 @@ const USERS = [
     {
         person: 'V',
         pass: 'x01003829',
-        nickname: 'Van Vo🌙🗝️',
+        nickname: 'Green Apple🌙🗝️',
     },
 
     {
@@ -662,7 +739,7 @@ const USERS = [
         {
         person: 'deronte',
         pass: 'sharkboy1',
-        nickname: 'Deronte OU',
+        nickname: 'Deronte OSU',
     
     },
     {
@@ -894,6 +971,13 @@ const METHODS_LIST = [
         rotation: '-2deg',
         fetcher: `${trivoURLlink}/files/Pm.html`,
     },
+    {
+        title: 'Super Star Car',
+        description: 'ram into stuff and like win race or something',
+        opacity: 0.5,
+        rotation: '3deg',
+        fetcher: `${trivoURLlink}/files/SSC.html`,
+    },
     //done
     // https://cdn.jsdelivr.net/gh/ZeldaBanana/Earglercraft-Optimized@main/EaglerCraft%201.8.8
     // woohoo hey stop checking source code you absolute bum
@@ -961,6 +1045,7 @@ const ARCHIVE_PAGES = [
 
 
 const UPDATE_LOG = [ 
+    { text: 'Version 4.8, reworked Talk UI with a public UI, added dms, made local option for debugging, settings made, ', color: '#a8e6cf' },
     { text: 'Version 4.7, fixed a fatal bug ', color: '#a8e6cf' },
     { text: 'Version 4.6, Talk refined, reforemd the theme channel, added like 2 more people cuz yes.', color: '#a8e6cf' },
     { text: 'Version 4.5, The Security and Talk update, self explainatory', color: '#a8e6cf' },
@@ -1295,6 +1380,7 @@ function openSelectedMenuItem() {
         menu.hidden = true
         talkPanel.hidden = false
         currentList = 'talk'
+        showTalkConversation()
         initializeChat()
         talkInput.focus()
         return
@@ -1401,6 +1487,7 @@ function restoreSavedLogin() {
 function initMenuLinkOver() {
     document.querySelector('#settings-close').addEventListener('click', closeSettings)
     document.querySelector('#talk-close').addEventListener('click', closeTalk)
+    document.querySelector('#talk-public-channel').addEventListener('click', () => showTalkConversation())
     talkNotificationToggle.addEventListener('click', () => {
         talkNotificationsEnabled = !talkNotificationsEnabled
         try {
@@ -1455,13 +1542,30 @@ function initMenuLinkOver() {
 
         talkStatus.textContent = 'Sending…'
         try {
-            await chatDatabase.ref('talk/messages').push({
-                uid: chatUser.uid,
-                name: person,
-                text,
-                createdAt: firebase.database.ServerValue.TIMESTAMP,
-            })
+            if (activeDM) {
+                const recipient = activeDM
+                await chatDatabase.ref(`talk/dms/${recipient.uid}`).push({
+                    uid: chatUser.uid,
+                    name: person,
+                    text,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                })
+                storeDMMessage(recipient.uid, {
+                    uid: chatUser.uid,
+                    name: person,
+                    text,
+                    own: true,
+                })
+            } else {
+                await chatDatabase.ref('talk/messages').push({
+                    uid: chatUser.uid,
+                    name: person,
+                    text,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                })
+            }
             talkInput.value = ''
+            talkMessages.scrollTop = talkMessages.scrollHeight
             talkStatus.textContent = 'Connected'
         } catch (error) {
             talkStatus.textContent = `Could not send: ${error.message}`
