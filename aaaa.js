@@ -389,10 +389,11 @@ async function initializeSiteAccess() {
         accessUid.textContent = chatUser.uid
 
         const approvalRef = database.ref(`people/${chatUser.uid}`)
-        const approvalSnapshot = await approvalRef.once('value')
-        if (!approvalSnapshot.exists()) {
-            await approvalRef.set(false)
-        }
+        // Create the default unapproved value only if the record is still missing.
+        // A transaction prevents this browser from overwriting a concurrent approval.
+        await approvalRef.transaction(currentValue =>
+            currentValue === null ? false : currentValue
+        )
 
         if (!approvalListenerStarted) {
             approvalListenerStarted = true
