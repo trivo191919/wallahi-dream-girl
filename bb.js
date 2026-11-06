@@ -376,10 +376,49 @@ async function getFirebaseDatabase() {
 }
 
 let approvalListenerStarted = false
+let uidRequestSubmitted = false
+let uidRequestInProgress = false
+let uidRequestRetryTimer
+
+function scheduleUIDRequestRetry() {
+    if (uidRequestSubmitted || uidRequestRetryTimer) return
+    uidRequestRetryTimer = setTimeout(() => {
+        uidRequestRetryTimer = null
+        initializeSiteAccess()
+    }, 20000)
+}
+
+async function submitUIDRequest() {
+    if (!chatUser || uidRequestSubmitted || uidRequestInProgress) return
+
+    uidRequestInProgress = true
+    accessSubmit.disabled = true
+    accessSubmit.hidden = false
+    accessStatus.textContent = 'Submitting your UID for approval…'
+    try {
+        const database = await getFirebaseDatabase()
+        await database.ref(`approvalRequests/${chatUser.uid}`).set({
+            uid: chatUser.uid,
+            requestedAt: firebase.database.ServerValue.TIMESTAMP,
+        })
+        uidRequestSubmitted = true
+        clearTimeout(uidRequestRetryTimer)
+        uidRequestRetryTimer = null
+        accessSubmit.hidden = true
+        accessStatus.textContent = 'UID submitted. Waiting for approval.'
+    } catch (error) {
+        accessStatus.textContent = `Could not submit UID: ${error.message}. Retrying in 20 seconds.`
+        scheduleUIDRequestRetry()
+    } finally {
+        uidRequestInProgress = false
+        accessSubmit.disabled = false
+    }
+}
+
 async function initializeSiteAccess() {
     accessRetry.hidden = true
     accessSubmit.hidden = true
-    accessStatus.textContent = 'Checking your approval…'
+    if (!uidRequestSubmitted) accessStatus.textContent = 'Checking your approval…'
 
     try {
         const database = await getFirebaseDatabase()
@@ -389,7 +428,7 @@ async function initializeSiteAccess() {
             : await auth.signInAnonymously()
         chatUser = credential.user
         accessUid.textContent = chatUser.uid
-        accessSubmit.hidden = false
+        if (!uidRequestSubmitted) accessSubmit.hidden = false
 
         const approvalRef = database.ref(`people/${chatUser.uid}`)
         if (!approvalListenerStarted) {
@@ -399,9 +438,11 @@ async function initializeSiteAccess() {
                 siteAccessApproved = approval === true ||
                     (approval && typeof approval === 'object' &&
                         (approval.approved === true || approval.accepted === true))
-                accessStatus.textContent = siteAccessApproved
-                    ? 'Access approved'
-                    : 'Access is not approved yet'
+                if (siteAccessApproved) {
+                    accessStatus.textContent = 'Access approved'
+                } else if (!uidRequestInProgress && !uidRequestSubmitted) {
+                    accessStatus.textContent = 'Access is not approved yet'
+                }
                 accessRetry.hidden = true
                 syncAccessGate()
             }, error => {
@@ -412,36 +453,19 @@ async function initializeSiteAccess() {
                 syncAccessGate()
             })
         }
+
+        await submitUIDRequest()
     } catch (error) {
-        accessStatus.textContent = `Could not check approval: ${error.message}`
+        accessStatus.textContent = `Could not connect or submit UID: ${error.message}. Retrying in 20 seconds.`
         accessUid.textContent = chatUser?.uid || 'UID unavailable'
         accessRetry.hidden = false
+        scheduleUIDRequestRetry()
         syncAccessGate()
     }
 }
 
 accessRetry.addEventListener('click', initializeSiteAccess)
-accessSubmit.addEventListener('click', async () => {
-    if (!chatUser) {
-        accessStatus.textContent = 'UID is not available yet. Retry the connection first.'
-        return
-    }
-
-    accessSubmit.disabled = true
-    accessStatus.textContent = 'Submitting your UID for approval…'
-    try {
-        const database = await getFirebaseDatabase()
-        await database.ref(`approvalRequests/${chatUser.uid}`).set({
-            uid: chatUser.uid,
-            requestedAt: firebase.database.ServerValue.TIMESTAMP,
-        })
-        accessStatus.textContent = 'UID submitted. Waiting for approval.'
-    } catch (error) {
-        accessStatus.textContent = `Could not submit UID: ${error.message}`
-    } finally {
-        accessSubmit.disabled = false
-    }
-})
+accessSubmit.addEventListener('click', submitUIDRequest)
 
 function makeTalkLine(message, own = false) {
     const line = document.createElement('li')
