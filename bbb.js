@@ -406,8 +406,18 @@ async function submitUIDRequest() {
         uidRequestRetryTimer = null
         accessSubmit.hidden = true
         accessStatus.textContent = 'UID submitted. Waiting for approval.'
-    } catch (error) {
-        accessStatus.textContent = `Could not submit UID: ${error.message}. Retrying in 20 seconds.`
+        } catch (error) {
+        let fallbackMessage = ''
+        try {
+            // The rules allow users to create their own people/{uid} node as false.
+            // This records the UID even when approvalRequests cannot be written.
+            const fallbackDatabase = await getFirebaseDatabase()
+            await fallbackDatabase.ref(`people/${chatUser.uid}`).set(false)
+            fallbackMessage = ' UID registered as pending, but the approval request was not saved.'
+        } catch (fallbackError) {
+            fallbackMessage = ` UID fallback also failed: ${fallbackError.message}.`
+        }
+        accessStatus.textContent = `Could not submit UID: ${error.message}.${fallbackMessage} Retrying in 20 seconds.`
         scheduleUIDRequestRetry()
     } finally {
         uidRequestInProgress = false
