@@ -253,6 +253,7 @@ const announcementText = document.querySelector('#announcement-text')
 const accessGate = document.querySelector('#access-gate')
 const accessStatus = document.querySelector('#access-status')
 const accessRetry = document.querySelector('#access-retry')
+const accessSubmit = document.querySelector('#access-submit')
 const accessUid = document.querySelector('#access-uid')
 const sourceSetupPanel = document.querySelector('#source-setup')
 const trivoURLlink = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
@@ -377,6 +378,7 @@ async function getFirebaseDatabase() {
 let approvalListenerStarted = false
 async function initializeSiteAccess() {
     accessRetry.hidden = true
+    accessSubmit.hidden = true
     accessStatus.textContent = 'Checking your approval…'
 
     try {
@@ -387,18 +389,16 @@ async function initializeSiteAccess() {
             : await auth.signInAnonymously()
         chatUser = credential.user
         accessUid.textContent = chatUser.uid
+        accessSubmit.hidden = false
 
         const approvalRef = database.ref(`people/${chatUser.uid}`)
-        // Create the default unapproved value only if the record is still missing.
-        // A transaction prevents this browser from overwriting a concurrent approval.
-        await approvalRef.transaction(currentValue =>
-            currentValue === null ? false : currentValue
-        )
-
         if (!approvalListenerStarted) {
             approvalListenerStarted = true
             approvalRef.on('value', snapshot => {
-                siteAccessApproved = snapshot.val() === true
+                const approval = snapshot.val()
+                siteAccessApproved = approval === true ||
+                    (approval && typeof approval === 'object' &&
+                        (approval.approved === true || approval.accepted === true))
                 accessStatus.textContent = siteAccessApproved
                     ? 'Access approved'
                     : 'Access is not approved yet'
@@ -421,6 +421,27 @@ async function initializeSiteAccess() {
 }
 
 accessRetry.addEventListener('click', initializeSiteAccess)
+accessSubmit.addEventListener('click', async () => {
+    if (!chatUser) {
+        accessStatus.textContent = 'UID is not available yet. Retry the connection first.'
+        return
+    }
+
+    accessSubmit.disabled = true
+    accessStatus.textContent = 'Submitting your UID for approval…'
+    try {
+        const database = await getFirebaseDatabase()
+        await database.ref(`approvalRequests/${chatUser.uid}`).set({
+            uid: chatUser.uid,
+            requestedAt: firebase.database.ServerValue.TIMESTAMP,
+        })
+        accessStatus.textContent = 'UID submitted. Waiting for approval.'
+    } catch (error) {
+        accessStatus.textContent = `Could not submit UID: ${error.message}`
+    } finally {
+        accessSubmit.disabled = false
+    }
+})
 
 function makeTalkLine(message, own = false) {
     const line = document.createElement('li')
