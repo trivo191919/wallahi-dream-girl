@@ -255,7 +255,9 @@ const accessStatus = document.querySelector('#access-status')
 const accessRetry = document.querySelector('#access-retry')
 const accessSubmit = document.querySelector('#access-submit')
 const accessUid = document.querySelector('#access-uid')
+const accessFacts = document.querySelector('#access-facts')
 const sourceSetupPanel = document.querySelector('#source-setup')
+
 const trivoURLlink = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
 const videoAssetBase = `${window.WAVE_VIDEO_SOURCE}/gh/emanoelqueiroz/persona-3-menu@latest`
 
@@ -381,12 +383,63 @@ let uidRequestInProgress = false
 let uidRequestRetryTimer
 
 function scheduleUIDRequestRetry() {
-    if (uidRequestSubmitted || uidRequestRetryTimer) return
+    if (uidRequestRetryTimer) return
     uidRequestRetryTimer = setTimeout(() => {
         uidRequestRetryTimer = null
         initializeSiteAccess()
-    }, 20000)
+    }, 5000)
 }
+
+function isUIDApproved(value, uid) {
+    if (value === true) return true
+    if (!value || typeof value !== 'object') return false
+    const approvalFlag = value.approved === true || value.accepted === true
+    const uidMatches = typeof value.uid !== 'string' || value.uid === uid
+    return approvalFlag && uidMatches
+}
+
+function showUIDVerification(uid, snapshot, error = '') {
+    const record = snapshot?.val() ?? null
+    const recordUid = record && typeof record === 'object' ? record.uid : undefined
+    accessFacts.textContent = [
+        `Current UID: ${uid || 'unavailable'}`,
+        `Database lookup: people/${uid || '(UID unavailable)'}`,
+        `Snapshot exists: ${snapshot ? snapshot.exists() : 'not checked'}`,
+        `Stored record: ${JSON.stringify(record)}`,
+        `Record UID field: ${recordUid === undefined ? '(not present)' : recordUid}`,
+        `Stored UID field matches current UID: ${recordUid === undefined ? 'not stored' : recordUid === uid}`,
+        `UID lookup: queried people/${uid || '(UID unavailable)'}`,
+        `Approved by current rules: ${isUIDApproved(record, uid)}`,
+        `Checked at: ${new Date().toLocaleString()}`,
+        `Verification error: ${error || 'none'}`,
+    ].join('\n')
+}
+
+let approvalCheckInProgress = false
+async function verifySiteAccess() {
+    if (!chatUser || siteAccessApproved || approvalCheckInProgress) return
+    approvalCheckInProgress = true
+    try {
+        const database = await getFirebaseDatabase()
+        const snapshot = await database.ref(`people/${chatUser.uid}`).once('value')
+        const approval = snapshot.val()
+        siteAccessApproved = isUIDApproved(approval, chatUser.uid)
+        showUIDVerification(chatUser.uid, snapshot)
+        accessStatus.textContent = siteAccessApproved
+            ? 'Access approved'
+            : 'Access is not approved yet; checking again in 5 seconds.'
+        accessRetry.hidden = true
+        syncAccessGate()
+    } catch (error) {
+        showUIDVerification(chatUser.uid, null, error.message)
+        accessStatus.textContent = `Could not check approval: ${error.message}. Retrying in 5 seconds.`
+        accessRetry.hidden = false
+        scheduleUIDRequestRetry()
+    } finally {
+        approvalCheckInProgress = false
+    }
+}
+
 
 async function submitUIDRequest() {
     if (!chatUser || uidRequestSubmitted || uidRequestInProgress) return
@@ -417,7 +470,8 @@ async function submitUIDRequest() {
         } catch (fallbackError) {
             fallbackMessage = ` UID fallback also failed: ${fallbackError.message}.`
         }
-        accessStatus.textContent = `Could not submit UID: ${error.message}.${fallbackMessage} Retrying in 20 seconds.`
+                accessStatus.textContent = `Could not submit UID: ${error.message}.${fallbackMessage} Retrying in 5 seconds.`
+
         scheduleUIDRequestRetry()
     } finally {
         uidRequestInProgress = false
@@ -443,31 +497,35 @@ async function initializeSiteAccess() {
         const approvalRef = database.ref(`people/${chatUser.uid}`)
         if (!approvalListenerStarted) {
             approvalListenerStarted = true
-            approvalRef.on('value', snapshot => {
+                        approvalRef.on('value', snapshot => {
                 const approval = snapshot.val()
-                siteAccessApproved = approval === true ||
-                    (approval && typeof approval === 'object' &&
-                        (approval.approved === true || approval.accepted === true))
+                siteAccessApproved = isUIDApproved(approval, chatUser.uid)
+                showUIDVerification(chatUser.uid, snapshot)
                 if (siteAccessApproved) {
                     accessStatus.textContent = 'Access approved'
                 } else if (!uidRequestInProgress && !uidRequestSubmitted) {
-                    accessStatus.textContent = 'Access is not approved yet'
+                    accessStatus.textContent = 'Access is not approved yet; checking again in 5 seconds.'
                 }
                 accessRetry.hidden = true
                 syncAccessGate()
             }, error => {
                 approvalListenerStarted = false
                 siteAccessApproved = false
+                showUIDVerification(chatUser.uid, null, error.message)
                 accessStatus.textContent = `Could not check approval: ${error.message}`
                 accessRetry.hidden = false
+                scheduleUIDRequestRetry()
                 syncAccessGate()
             })
+
         }
 
         await submitUIDRequest()
     } catch (error) {
-        accessStatus.textContent = `Could not connect or submit UID: ${error.message}. Retrying in 20 seconds.`
+                accessStatus.textContent = `Could not connect or submit UID: ${error.message}. Retrying in 5 seconds.`
         accessUid.textContent = chatUser?.uid || 'UID unavailable'
+        showUIDVerification(chatUser?.uid, null, error.message)
+
         accessRetry.hidden = false
         scheduleUIDRequestRetry()
         syncAccessGate()
@@ -1774,6 +1832,8 @@ insertListItens()
 initMenuLinkOver()
 restoreSavedLogin()
 initializeSiteAccess()
+setInterval(verifySiteAccess, 5000)
 initializeAnnouncements().catch(error => {
+
     announceStatus.textContent = `${error.message}`
 })
