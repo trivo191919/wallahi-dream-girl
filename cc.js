@@ -218,6 +218,7 @@ let currentMethodsPage = 0
 let person = 'Guest'
 const videoWrapper = document.querySelector('.video-wrapper')
 const video = document.querySelector('#video')
+const classicVideoSource = video.querySelector('source')?.getAttribute('src') || video.getAttribute('src') || video.currentSrc || ''
 const welcomeWrapper = document.querySelector('.welcome-wrapper')
 const itemDescription = document.querySelector('.item-description')
 const main = document.querySelector('main')
@@ -460,19 +461,15 @@ async function submitUIDRequest() {
         accessSubmit.hidden = true
         accessStatus.textContent = 'UID submitted. Waiting for approval.'
         } catch (error) {
-        let fallbackMessage = ''
-        try {
-            // The rules allow users to create their own people/{uid} node as false.
-            // This records the UID even when approvalRequests cannot be written.
-            const fallbackDatabase = await getFirebaseDatabase()
-            await fallbackDatabase.ref(`people/${chatUser.uid}`).set(false)
-            fallbackMessage = ' UID registered as pending, but the approval request was not saved.'
-        } catch (fallbackError) {
-            fallbackMessage = ` UID fallback also failed: ${fallbackError.message}.`
-        }
-                accessStatus.textContent = `Could not submit UID: ${error.message}.${fallbackMessage} Retrying in 5 seconds.`
+        const code = error?.code || 'unknown error'
+        const isPermissionDenied = code === 'PERMISSION_DENIED' || /permission_denied/i.test(error?.message || '')
+        accessStatus.textContent = isPermissionDenied
+            ? `UID request rejected by Firebase rules (${code}). No request was saved; check the approvalRequests write rule.`
+            : `Could not submit UID (${code}): ${error.message}. Retrying in 5 seconds.`
 
-        scheduleUIDRequestRetry()
+        // Do not write to people/{uid} as a fallback: that is a different record
+        // and could create a misleading pending entry or overwrite approval data.
+        if (!isPermissionDenied) scheduleUIDRequestRetry()
     } finally {
         uidRequestInProgress = false
         accessSubmit.disabled = false
@@ -765,14 +762,25 @@ const MUSIC_OPTIONS = [
 
 const bgMusic = new Audio(MUSIC_OPTIONS[4].url)
 
+const ADVANCED_STYLE_DEFAULTS = {
+    siteFont: 'auto',
+    menuFontSize: 40,
+    panelOpacity: 100,
+    cornerRadius: 0,
+    backdropBlur: 0,
+    customCss: '',
+}
+
 const DEFAULT_SETTINGS = {
     rememberLogin: true,
     backgroundMusic: true,
     accentColor: '#68fcfe',
-    videoOpacity: 93,
+    uiStyle: 'merged', //or classic
+    videoOpacity: 100,
     largeMenu: false,
     highContrast: false,
     reducedMotion: false,
+    ...ADVANCED_STYLE_DEFAULTS,
 }
 
 let settings = { ...DEFAULT_SETTINGS }
@@ -791,8 +799,9 @@ const SETTING_CATEGORIES = [
     {
         title: 'Looks',
         settings: [
+            { key: 'uiStyle', label: 'UI style', description: 'legacy or new ', type: 'select', options: [['classic', 'Legacy'], ['merged', 'Lobotomy Corporation']] },
             { key: 'accentColor', label: 'Menu accent', description: 'color for buttons yo', type: 'select', options: [['#68fcfe', 'Wave'], ['#ffb6d9', 'Pink'], ['#5390A6', 'Mint'], ['#F2DF33', 'Gold']] },
-            { key: 'videoOpacity', label: 'Background brightness', description: 'make background transparent idk', type: 'range', min: 35, max: 100, suffix: '%' },
+            { key: 'videoOpacity', label: 'Background brightness', description: 'make background transparent idk', type: 'range', min: 0, max: 100, suffix: '%' },
         ],
     },
     {
@@ -801,6 +810,17 @@ const SETTING_CATEGORIES = [
             { key: 'largeMenu', label: 'Larger menu text', description: 'makes main menu bigger', type: 'checkbox' },
             { key: 'highContrast', label: 'High contrast menu', description: 'dark outline text woohoo', type: 'checkbox' },
             { key: 'reducedMotion', label: 'Reduce motion', description: 'reduces animation, good for battery i guess', type: 'checkbox' },
+        ],
+    },
+    {
+        title: 'Advanced',
+        settings: [
+            { key: 'siteFont', label: 'Site font', description: 'Choose the main typeface used across the site.', type: 'select', options: [['auto', 'Use UI default'], ['serif', 'Classic serif'], ['sans', 'Sans serif'], ['mono', 'Monospace'], ['impact', 'Impact display']] },
+            { key: 'menuFontSize', label: 'Main menu text size', description: 'Set the main navigation text size in pixels.', type: 'range', min: 20, max: 64, suffix: 'px' },
+            { key: 'panelOpacity', label: 'Panel opacity', description: 'Adjust the settings, archives, and update panel backgrounds.', type: 'range', min: 35, max: 100, suffix: '%' },
+            { key: 'cornerRadius', label: 'Panel corner radius', description: 'Round the corners of dialogs and panels.', type: 'range', min: 0, max: 28, suffix: 'px' },
+            { key: 'backdropBlur', label: 'Settings backdrop blur', description: 'Blur the page behind the Settings panel.', type: 'range', min: 0, max: 20, suffix: 'px' },
+            { key: 'customCss', label: 'Custom CSS', description: 'Advanced: write site-wide CSS overrides. Stored only in this browser.', type: 'textarea' },
         ],
     },
 ]
@@ -812,13 +832,49 @@ function saveSettings() {
     } catch {}
 }
 
+const customCssStyle = document.createElement('style')
+customCssStyle.id = 'wave-custom-css'
+
 function applySettings() {
+    const cinematic = settings.uiStyle === 'merged'
+    const siteFonts = {
+        serif: '"Times New Roman", serif',
+        sans: 'Arial, Helvetica, sans-serif',
+        mono: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+        impact: 'Impact, "Arial Narrow", sans-serif',
+    }
     document.body.style.setProperty('--wave-accent', settings.accentColor)
+    document.body.style.setProperty('--settings-site-font', settings.siteFont === 'auto'
+        ? (cinematic ? siteFonts.impact : siteFonts.serif)
+        : siteFonts[settings.siteFont] || siteFonts.serif)
+    document.body.style.setProperty('--settings-panel-color', cinematic ? '#111611' : '#241333')
+    const menuFontSize = Number(settings.menuFontSize) || 40
+    document.body.style.setProperty('--settings-menu-size', `${settings.largeMenu ? Math.max(48, menuFontSize) : menuFontSize}px`)
+    document.body.style.setProperty('--settings-panel-opacity', `${Number(settings.panelOpacity) || 100}%`)
+    document.body.style.setProperty('--settings-corner-radius', `${Number(settings.cornerRadius) || 0}px`)
+    document.body.style.setProperty('--settings-backdrop-blur', `${Number(settings.backdropBlur) || 0}px`)
+    customCssStyle.textContent = typeof settings.customCss === 'string' ? settings.customCss : ''
+    document.head.append(customCssStyle)
+    document.body.classList.toggle('settings-merged-ui', cinematic)
     document.body.classList.toggle('settings-large-menu', settings.largeMenu)
     document.body.classList.toggle('settings-high-contrast', settings.highContrast)
     document.body.classList.toggle('settings-reduced-motion', settings.reducedMotion)
     video.style.opacity = String(settings.videoOpacity / 100)
     bgMusic.muted = !settings.backgroundMusic
+
+    const source = video.querySelector('source')
+    if (cinematic) {
+        video.pause()
+        video.removeAttribute('src')
+        source?.removeAttribute('src')
+        video.load()
+        main.classList.add('show')
+    } else if (classicVideoSource && source && source.getAttribute('src') !== classicVideoSource) {
+        video.removeAttribute('src')
+        source.src = classicVideoSource
+        video.load()
+        video.play().catch(() => {})
+    }
 }
 
 applySettings()
@@ -860,6 +916,12 @@ const USERS = [
         person: 'tavi',
         pass:   '2axles',
         nickname: 'car wizard',
+    
+    },
+    {
+        person: 'Dyanna',
+        pass:   '3axles',
+        nickname: 'Dyanna',
     
     },
     {
@@ -1224,7 +1286,7 @@ bgMusic.volume = 1
 
 body.addEventListener('click', () => {
     document.body.requestFullscreen()
-    video.play()
+    if (settings.uiStyle !== 'merged') video.play()
 
     welcomeWrapper.classList.add('ok')
 //really important, sets background music and then sets the timer for a specific time
@@ -1406,7 +1468,15 @@ function showSettingsCategory(index) {
         copy.append(label, description)
 
         let control
-        if (setting.type === 'checkbox') {
+        if (setting.type === 'textarea') {
+            row.classList.add('settings-row-textarea')
+            control = document.createElement('textarea')
+            control.rows = 10
+            control.maxLength = 20000
+            control.value = settings[setting.key] || ''
+            control.spellcheck = false
+            control.className = 'settings-custom-css'
+        } else if (setting.type === 'checkbox') {
             control = document.createElement('input')
             control.type = 'checkbox'
             control.checked = Boolean(settings[setting.key])
@@ -1443,9 +1513,23 @@ function showSettingsCategory(index) {
             saveSettings()
             applySettings()
         }
-        control.addEventListener(setting.type === 'range' ? 'input' : 'change', update)
+        control.addEventListener(setting.type === 'range' || setting.type === 'textarea' ? 'input' : 'change', update)
         settingsOptions.append(row)
     })
+
+    if (category.title === 'Advanced') {
+        const resetButton = document.createElement('button')
+        resetButton.type = 'button'
+        resetButton.className = 'settings-reset-advanced'
+        resetButton.textContent = 'Reset advanced style controls'
+        resetButton.addEventListener('click', () => {
+            Object.assign(settings, ADVANCED_STYLE_DEFAULTS)
+            saveSettings()
+            applySettings()
+            showSettingsCategory(currentSettingsCategory)
+        })
+        settingsOptions.append(resetButton)
+    }
 }
 
 function openSettings() {
@@ -1781,7 +1865,7 @@ function initMenuLinkOver() {
 
 
 video.addEventListener('timeupdate', () => {
-    if (video.currentTime < 1.60 || initiated) {
+    if (settings.uiStyle === 'merged' || video.currentTime < 1.60 || initiated) {
         return
     }
 
@@ -1792,6 +1876,7 @@ video.addEventListener('timeupdate', () => {
 })
 
 video.addEventListener('ended', () => {
+    if (settings.uiStyle === 'merged') return
     video.loop = true
     video.src = `${videoAssetBase}/videos/bg-video-2.mp4`
     video.load()
