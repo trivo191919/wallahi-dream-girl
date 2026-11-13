@@ -258,6 +258,9 @@ const accessSubmit = document.querySelector('#access-submit')
 const accessUid = document.querySelector('#access-uid')
 const accessFacts = document.querySelector('#access-facts')
 const sourceSetupPanel = document.querySelector('#source-setup')
+const infoOverlay = document.querySelector('#info-overlay')
+const infoTitle = document.querySelector('#info-title')
+const infoContent = document.querySelector('#info-content')
 
 const trivoURLlink = `${window.WAVE_WELCOME_SOURCE}/gh/trivo191919/wallahi-dream-girl@latest`
 const videoAssetBase = `${window.WAVE_VIDEO_SOURCE}/gh/emanoelqueiroz/persona-3-menu@latest`
@@ -320,7 +323,7 @@ async function requestTalkNotificationPermission() {
 }
 
 function notifyTalkMessage(message, key) {
-    if (!talkNotificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return
+    if (panicActive || !talkNotificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return
 
     const notification = new Notification('New Talk message', {
         body: `${message.name || 'Guest'}: ${message.text}`,
@@ -734,6 +737,11 @@ const MUSIC_OPTIONS = [
         url: `${trivoURLlink}/TOTOF.mp3`,
     },
     {
+        title: 'Before the Hard Day',
+        description: 'when the fourth trumpet appears',
+        url: `${trivoURLlink}/Before.mp3`,
+    },
+    {
         title: 'Children Of The City',
         description: 'Oh, its time for another vendetta.',
         url: `${trivoURLlink}/cotc.mp3`,
@@ -754,13 +762,13 @@ const MUSIC_OPTIONS = [
         url: `${trivoURLlink}/paperbouquet.mp3`,
     },
     {
-        title: 'In ***** We live, Lament.',
+        title: 'In Heck We live, Lament.',
         description: 'Lament, if you wanted me to live!',
         url: `${trivoURLlink}/lament.mp3`,
     },
 ]
 
-const bgMusic = new Audio(MUSIC_OPTIONS[4].url)
+const bgMusic = new Audio(MUSIC_OPTIONS[1].url)
 
 const ADVANCED_STYLE_DEFAULTS = {
     siteFont: 'auto',
@@ -780,6 +788,14 @@ const DEFAULT_SETTINGS = {
     largeMenu: false,
     highContrast: false,
     reducedMotion: false,
+    theme: 'default',
+    background: 'default',
+    backgroundUrl: '',
+    musicVolume: 100,
+    soundEffects: true,
+    showClock: true,
+    showBattery: true,
+    panicKey: true,
     ...ADVANCED_STYLE_DEFAULTS,
 }
 
@@ -790,26 +806,44 @@ try {
 
 const SETTING_CATEGORIES = [
     {
-        title: 'Main',
+        title: 'General',
         settings: [
-            { key: 'rememberLogin', label: 'Remember login', description: 'dont need to sign in again', type: 'checkbox' },
-            { key: 'backgroundMusic', label: 'Background music', description: 'music!!', type: 'checkbox' },
+            { key: 'rememberLogin', label: 'Remember login', description: 'Keep your selected login in this browser.', type: 'checkbox' },
+            { key: 'showClock', label: 'Show clock', description: 'Display the clock in the corner.', type: 'checkbox' },
+            { key: 'showBattery', label: 'Show battery', description: 'Display battery information when available.', type: 'checkbox' },
+            { key: 'panicKey', label: 'Panic key', description: 'Press Shift + ` to toggle a blank screen and pause media.', type: 'checkbox' },
         ],
     },
     {
-        title: 'Looks',
+        title: 'Audio',
         settings: [
-            { key: 'uiStyle', label: 'UI style', description: 'legacy or new ', type: 'select', options: [['classic', 'Legacy'], ['merged', 'Lobotomy Corporation']] },
-            { key: 'accentColor', label: 'Menu accent', description: 'color for buttons yo', type: 'select', options: [['#68fcfe', 'Wave'], ['#ffb6d9', 'Pink'], ['#5390A6', 'Mint'], ['#F2DF33', 'Gold']] },
-            { key: 'videoOpacity', label: 'Background brightness', description: 'make background transparent idk', type: 'range', min: 0, max: 100, suffix: '%' },
+            { key: 'backgroundMusic', label: 'Background music', description: 'Mute or unmute the current track.', type: 'checkbox' },
+            { key: 'musicVolume', label: 'Music volume', description: 'Adjust background music volume.', type: 'range', min: 0, max: 100, suffix: '%' },
+            { key: 'soundEffects', label: 'Menu sounds', description: 'Play a sound when navigating.', type: 'checkbox' },
+        ],
+    },
+    {
+        title: 'Appearance',
+        settings: [
+            { key: 'uiStyle', label: 'UI style', description: 'Choose the layout.', type: 'select', options: [['classic', 'Legacy'], ['merged', 'Lobotomy Corporation']] },
+            { key: 'theme', label: 'Color theme', description: 'Choose a color palette for the interface.', type: 'select', options: [['default', 'Default'], ['ocean', 'Ocean'], ['rose', 'Rose'], ['gold', 'Gold']] },
+            { key: 'accentColor', label: 'Legacy menu accent', description: 'Color for legacy menu buttons.', type: 'select', options: [['#68fcfe', 'Wave'], ['#ffb6d9', 'Pink'], ['#5390A6', 'Mint'], ['#F2DF33', 'Gold']] },
+        ],
+    },
+    {
+        title: 'Background',
+        settings: [
+            { key: 'background', label: 'Background', description: 'Use the default, a preset, or a custom image URL.', type: 'select', options: [['default', 'Default'], ['dark', 'Dark'], ['ocean', 'Ocean'], ['sunset', 'Sunset'], ['image', 'Custom image']] },
+            { key: 'backgroundUrl', label: 'Custom image URL', description: 'HTTPS or HTTP image URL; select Custom image above to use it.', type: 'url' },
+            { key: 'videoOpacity', label: 'Background brightness', description: 'Adjust the visibility of the background.', type: 'range', min: 0, max: 100, suffix: '%' },
         ],
     },
     {
         title: 'Accessibility',
         settings: [
-            { key: 'largeMenu', label: 'Larger menu text', description: 'makes main menu bigger', type: 'checkbox' },
-            { key: 'highContrast', label: 'High contrast menu', description: 'dark outline text woohoo', type: 'checkbox' },
-            { key: 'reducedMotion', label: 'Reduce motion', description: 'reduces animation, good for battery i guess', type: 'checkbox' },
+            { key: 'largeMenu', label: 'Larger menu text', description: 'Makes main menu text bigger.', type: 'checkbox' },
+            { key: 'highContrast', label: 'High contrast menu', description: 'Adds an outline to menu text.', type: 'checkbox' },
+            { key: 'reducedMotion', label: 'Reduce motion', description: 'Reduces animations and transitions.', type: 'checkbox' },
         ],
     },
     {
@@ -859,25 +893,96 @@ function applySettings() {
     document.body.classList.toggle('settings-large-menu', settings.largeMenu)
     document.body.classList.toggle('settings-high-contrast', settings.highContrast)
     document.body.classList.toggle('settings-reduced-motion', settings.reducedMotion)
-    video.style.opacity = String(settings.videoOpacity / 100)
+    document.body.dataset.theme = ['ocean', 'rose', 'gold'].includes(settings.theme) ? settings.theme : 'default'
+    document.querySelector('#site-clock').hidden = !settings.showClock
+    document.querySelector('#battery-label').hidden = !settings.showBattery
+    document.querySelector('.battery-bar').hidden = !settings.showBattery
     bgMusic.muted = !settings.backgroundMusic
+    bgMusic.volume = Math.max(0, Math.min(1, (Number(settings.musicVolume) || 0) / 100))
+    if (!settings.soundEffects) audio.pause()
+
+    const backgrounds = {
+        dark: 'linear-gradient(135deg, #080a10, #202634)',
+        ocean: 'linear-gradient(135deg, #061c2b, #126477)',
+        sunset: 'linear-gradient(135deg, #24102e, #b14e44)',
+    }
+    let imageUrl = ''
+    try {
+        const url = new URL(settings.backgroundUrl)
+        if (url.protocol === 'https:' || url.protocol === 'http:') imageUrl = url.href
+    } catch {}
+    const customBackground = backgrounds[settings.background] ||
+        (settings.background === 'image' && imageUrl ? `url(${JSON.stringify(imageUrl)})` : '')
+    videoWrapper.style.backgroundImage = customBackground
+    videoWrapper.style.setProperty('--background-brightness', String(Number(settings.videoOpacity) / 100))
+    videoWrapper.style.opacity = customBackground ? String(Number(settings.videoOpacity) / 100) : ''
+    videoWrapper.classList.toggle('custom-background', Boolean(customBackground))
+    video.style.opacity = String(Number(settings.videoOpacity) / 100)
 
     const source = video.querySelector('source')
     if (cinematic) {
         video.pause()
-        video.removeAttribute('src')
-        source?.removeAttribute('src')
-        video.load()
+        if (video.hasAttribute('src') || source?.hasAttribute('src')) {
+            video.removeAttribute('src')
+            source?.removeAttribute('src')
+            video.load()
+        }
         main.classList.add('show')
-    } else if (classicVideoSource && source && source.getAttribute('src') !== classicVideoSource) {
-        video.removeAttribute('src')
-        source.src = classicVideoSource
-        video.load()
-        video.play().catch(() => {})
+    } else if (classicVideoSource && source) {
+        if (source.getAttribute('src') !== classicVideoSource) {
+            video.removeAttribute('src')
+            source.src = classicVideoSource
+            video.load()
+        }
+        if (customBackground) {
+            video.pause()
+            main.classList.add('show')
+        } else if (welcomeWrapper.classList.contains('ok')) {
+            video.play().catch(() => {})
+        }
     }
 }
 
 applySettings()
+
+const panicScreen = document.createElement('div')
+panicScreen.setAttribute('aria-label', 'Blank screen')
+panicScreen.setAttribute('role', 'dialog')
+panicScreen.setAttribute('aria-modal', 'true')
+panicScreen.tabIndex = -1
+panicScreen.style.cssText = 'position:fixed!important;inset:0!important;z-index:2147483647!important;background:#fff!important;display:none!important;opacity:1!important;visibility:visible!important;'
+document.body.append(panicScreen)
+panicScreen.addEventListener('click', event => event.stopPropagation())
+let panicActive = false
+let panicMediaState = null
+let focusBeforePanic = null
+
+document.addEventListener('keydown', event => {
+    const isPanicShortcut = event.shiftKey && (event.code === 'Backquote' || event.key === '~') && !event.ctrlKey && !event.altKey && !event.metaKey
+    if (isPanicShortcut && (settings.panicKey || panicActive)) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        if (event.repeat) return
+        panicActive = !panicActive
+        panicScreen.style.setProperty('display', panicActive ? 'block' : 'none', 'important')
+        if (panicActive) {
+            focusBeforePanic = document.activeElement
+            panicMediaState = { music: !bgMusic.paused, video: !video.paused }
+            bgMusic.pause()
+            audio.pause()
+            video.pause()
+            panicScreen.focus()
+        } else {
+            focusBeforePanic?.focus?.()
+            if (panicMediaState?.music) bgMusic.play().catch(() => {})
+            if (panicMediaState?.video) video.play().catch(() => {})
+            panicMediaState = null
+        }
+    } else if (panicActive) {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+    }
+}, true)
 
 const USERS = [
     {
@@ -889,47 +994,97 @@ const USERS = [
     {
         person: 'long',
         pass: 'loganisok',
-        nickname: 'Logan ⚘',
+        nickname: 'Ishmael ⚘',
     },
+    
     {
         person: 'warren',
         pass: 'boomer',
-        nickname: 'OU boy',
+        nickname: 'OU Meursalt',
     },
+    
     {
         person: 'ava',
         pass: 'something',
-        nickname: 'Ava ⚘',
+        nickname: 'Ryoshu ⚘',
     },
+    
     {
         person: 'kevin',
         pass: 'klevprime',
-        nickname: 'kevin prime',
+        nickname: 'Sinclair Prime',
     },
         {
         person: 'deronte',
         pass: 'sharkboy1',
-        nickname: 'Deronte OSU',
+        nickname: 'OSU Gregor',
     
     },
+    
     {
         person: 'tavi',
         pass:   '2axles',
-        nickname: 'car wizard',
+        nickname: 'Heathcliff C&H',
     
     },
+    
     {
-        person: 'Dyanna',
+        person: 'Dhyana',
         pass:   '3axles',
-        nickname: 'Dyanna',
+        nickname: 'Catherine H&C',
     
     },
+    
+    
+    
+    
     {
         person: 'grant',
         pass:   'granted',
-        nickname: 'grant the ant',
+        nickname: 'Don Quixote',
     
     },
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+     {
+        person: 'sov',
+        pass:   'trabajador',
+        nickname: 'The Sovereign',
+    },
+    
+    {
+        person: 'kayden',
+        pass:   'dallas',
+        nickname: 'kaydan',
+    },
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 ]
 
@@ -1160,6 +1315,15 @@ const METHODS_LIST = [
         rotation: '3deg',
         fetcher: `${trivoURLlink}/files/SSC.html`,
     },
+    
+    
+    
+    
+    
+    
+    
+    
+    
     //done
     // https://cdn.jsdelivr.net/gh/ZeldaBanana/Earglercraft-Optimized@main/EaglerCraft%201.8.8
     // woohoo hey stop checking source code you absolute bum
@@ -1227,6 +1391,7 @@ const ARCHIVE_PAGES = [
 
 
 const UPDATE_LOG = [ 
+        { text: 'Version 4.9, reworked settings, tried to add a queue system for quicker loading if your using the classic wave style, now pressing SHIFT + ` makes the screen appear blank. The revelation starts', color: '#a8e6cf' },
     { text: 'Version 4.8, reworked Talk UI with a public UI, added dms, made local option for debugging, settings made, ', color: '#a8e6cf' },
     { text: 'Version 4.7, fixed a fatal bug ', color: '#a8e6cf' },
     { text: 'Version 4.6, Talk refined, reforemd the theme channel, added like 2 more people cuz yes.', color: '#a8e6cf' },
@@ -1286,11 +1451,13 @@ bgMusic.volume = 1
 
 body.addEventListener('click', () => {
     document.body.requestFullscreen()
-    if (settings.uiStyle !== 'merged') video.play()
+    if (settings.uiStyle !== 'merged' && !videoWrapper.classList.contains('custom-background')) video.play().catch(() => {})
 
     welcomeWrapper.classList.add('ok')
-//really important, sets background music and then sets the timer for a specific time
-    setTimeout(() => bgMusic.currentTime=0.5,bgMusic.play(), 500)
+    setTimeout(() => {
+        bgMusic.currentTime = 0.5
+        if (!panicActive) bgMusic.play().catch(() => {})
+    }, 500)
     
 }, { once: true })
 //super duper necessary
@@ -1371,6 +1538,59 @@ function renderMenu(list, listName) {
 
 function insertListItens() {
     renderMenu(MENU_LINKS, 'main');
+}
+
+
+const SOCIAL_LINKS = ['goldendarkness1312@gmail.com','vohdidoo@gmail', 'DISCOR-D: itmissmyfriendstrivo']
+const SITE_RULES = [
+    'Use the site and linked content responsibly and follow applicable terms.',
+    'Respect other people in Talk; do not harass, spam, or share private information.',
+    'Do not distribute or copy the site without the creator’s permission and credit.',
+    'Choose an appropriate time and place to use the site.',
+]
+
+function showInfo(kind) {
+    const social = kind === 'socials'
+    infoTitle.textContent = social ? 'Socials & contact' : 'Rules'
+    infoContent.replaceChildren()
+    if (social) {
+        if (!SOCIAL_LINKS.length) {
+            const message = document.createElement('p')
+            message.textContent = 'No contact links have been added yet.'
+            infoContent.append(message)
+        } else {
+            const list = document.createElement('ul')
+            SOCIAL_LINKS.forEach(({ label, url }) => {
+                const item = document.createElement('li')
+                const link = document.createElement('a')
+                link.textContent = label
+                link.href = url
+                link.target = '_blank'
+                link.rel = 'noopener noreferrer'
+                item.append(link)
+                list.append(item)
+            })
+            infoContent.append(list)
+        }
+    } else {
+        const list = document.createElement('ol')
+        SITE_RULES.forEach(rule => {
+            const item = document.createElement('li')
+            item.textContent = rule
+            list.append(item)
+        })
+        infoContent.append(list)
+    }
+    menu.hidden = true
+    infoOverlay.hidden = false
+    currentList = kind
+    document.querySelector('#info-close').focus()
+}
+
+function closeInfo() {
+    infoOverlay.hidden = true
+    menu.hidden = false
+    renderMenu(MENU_LINKS, 'main')
 }
 
 function showUpdates() {
@@ -1476,6 +1696,12 @@ function showSettingsCategory(index) {
             control.value = settings[setting.key] || ''
             control.spellcheck = false
             control.className = 'settings-custom-css'
+        } else if (setting.type === 'url') {
+            control = document.createElement('input')
+            control.type = 'url'
+            control.placeholder = 'https://example.com/image.jpg'
+            control.value = settings[setting.key] || ''
+            control.className = 'settings-url'
         } else if (setting.type === 'checkbox') {
             control = document.createElement('input')
             control.type = 'checkbox'
@@ -1507,6 +1733,19 @@ function showSettingsCategory(index) {
         control.setAttribute('aria-label', setting.label)
         if (setting.type !== 'range') row.append(copy, control)
         const update = () => {
+            if (setting.type === 'url' && control.value.trim()) {
+                try {
+                    const url = new URL(control.value.trim())
+                    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Invalid protocol')
+                    control.setCustomValidity('')
+                } catch {
+                    control.setCustomValidity('Enter a valid HTTP or HTTPS image URL.')
+                    control.reportValidity()
+                    return
+                }
+            } else if (setting.type === 'url') {
+                control.setCustomValidity('')
+            }
             settings[setting.key] = setting.type === 'checkbox'
                 ? control.checked
                 : setting.type === 'range' ? Number(control.value) : control.value
@@ -1517,13 +1756,19 @@ function showSettingsCategory(index) {
         settingsOptions.append(row)
     })
 
-    if (category.title === 'Advanced') {
+    const resets = {
+        Appearance: { label: 'Reset theme', values: { theme: DEFAULT_SETTINGS.theme, uiStyle: DEFAULT_SETTINGS.uiStyle, accentColor: DEFAULT_SETTINGS.accentColor } },
+        Background: { label: 'Reset background', values: { background: DEFAULT_SETTINGS.background, backgroundUrl: DEFAULT_SETTINGS.backgroundUrl, videoOpacity: DEFAULT_SETTINGS.videoOpacity } },
+        Advanced: { label: 'Reset advanced settings', values: ADVANCED_STYLE_DEFAULTS },
+    }
+    const reset = resets[category.title]
+    if (reset) {
         const resetButton = document.createElement('button')
         resetButton.type = 'button'
         resetButton.className = 'settings-reset-advanced'
-        resetButton.textContent = 'Reset advanced style controls'
+        resetButton.textContent = reset.label
         resetButton.addEventListener('click', () => {
-            Object.assign(settings, ADVANCED_STYLE_DEFAULTS)
+            Object.assign(settings, reset.values)
             saveSettings()
             applySettings()
             showSettingsCategory(currentSettingsCategory)
@@ -1597,6 +1842,11 @@ function openSelectedMenuItem() {
 
     if (currentList === 'main' && title === 'Archives') {
         showArchives()
+        return
+    }
+
+    if (currentList === 'main' && (title === 'Socials' || title === 'Rules')) {
+        showInfo(title.toLowerCase())
         return
     }
 
@@ -1690,6 +1940,7 @@ function restoreSavedLogin() {
 
 function initMenuLinkOver() {
     document.querySelector('#settings-close').addEventListener('click', closeSettings)
+    document.querySelector('#info-close').addEventListener('click', closeInfo)
     document.querySelector('#talk-close').addEventListener('click', closeTalk)
     document.querySelector('#talk-public-channel').addEventListener('click', () => showTalkConversation())
     talkNotificationToggle.addEventListener('click', () => {
@@ -1778,11 +2029,6 @@ function initMenuLinkOver() {
 
     document.addEventListener('keydown', (e) => {
         if (!siteAccessApproved) return
-        if (e.key === 'Shift' && !loginPanel.hidden) {
-            loginPanel.hidden = true
-            openMethodsAfterLogin = false
-            return
-        }
         if (e.key === 'Escape' && !loginPanel.hidden) {
             loginPanel.hidden = true
             openMethodsAfterLogin = false
@@ -1791,6 +2037,7 @@ function initMenuLinkOver() {
 
         if (e.key === 'Escape' && currentList !== 'main') {
             if (currentList === 'archives') closeArchives()
+            else if (currentList === 'socials' || currentList === 'rules') closeInfo()
             else if (currentList === 'talk') closeTalk()
             else if (currentList === 'settings') closeSettings()
             else if (currentList === 'updates' || currentList === 'closing-updates') closeUpdates()
@@ -1809,7 +2056,7 @@ function initMenuLinkOver() {
 */
 
 
-        if (currentList === 'updates' || currentList === 'archives' || currentList === 'talk' || currentList === 'settings') return
+        if (['updates', 'archives', 'talk', 'settings', 'socials', 'rules'].includes(currentList)) return
 
         const verticalKey = e.key === 'ArrowUp' || e.key === 'ArrowDown'
         if (!loginPanel.hidden || !verticalKey) return
@@ -1826,14 +2073,16 @@ function initMenuLinkOver() {
         items[nextIndex].classList.add('selected')
         itemDescription.textContent = items[nextIndex].dataset.description || ''
 
-        audio.pause();
-        audio.currentTime = 0;
-        audio.play()
+        if (settings.soundEffects) {
+            audio.pause()
+            audio.currentTime = 0
+            audio.play().catch(() => {})
+        }
     })
 
     document.addEventListener('keydown', (e) => {
         if (!siteAccessApproved) return
-        if (currentList === 'archives' || currentList === 'talk' || currentList === 'updates' || currentList === 'settings') return
+        if (['archives', 'talk', 'updates', 'settings', 'socials', 'rules'].includes(currentList)) return
         if (loginPanel.hidden && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
             openSelectedMenuItem()
