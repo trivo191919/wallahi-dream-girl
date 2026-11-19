@@ -105,6 +105,7 @@ main.show {
     text-shadow: 1px 2px #000;
 }
 #site-clock { font-size: 22px; }
+#clock-countdown { font-size: 13px; }
 .battery-bar {
     position: fixed;
     z-index: 2;
@@ -675,7 +676,8 @@ body { --wave-accent: #68fcfe; }
     grid-template-columns: 240px minmax(0, 1fr);
     overflow: hidden;
     color: #dbdee1;
-    background: #313338;
+    background: rgba(49, 51, 56, 0.65);
+    backdrop-filter: blur(5px);
     border: 1px solid #1e1f22;
     border-radius: 10px;
     box-shadow: 0 18px 60px #0009;
@@ -688,7 +690,7 @@ body { --wave-accent: #68fcfe; }
     min-height: 0;
     overflow-y: auto;
     padding: 16px 10px;
-    background: #2b2d31;
+    background: rgba(43, 45, 49, 0.65);
 }
 
 .talk-sidebar-header {
@@ -778,11 +780,20 @@ body { --wave-accent: #68fcfe; }
     margin: 0;
     padding: 18px 22px;
     list-style: none;
-    background: #313338;
+    background: rgba(49, 51, 56, 0.65);
 }
 .talk-messages li { margin: 0 0 14px; overflow-wrap: anywhere; line-height: 1.5; }
 .talk-messages strong { margin-right: 5px; color: #f2f3f5; }
-.talk-compose { display: flex; gap: 10px; margin: 0 18px 18px; padding: 10px; background: #383a40; border-radius: 8px; }
+.talk-message-meta { display: inline-flex; align-items: center; gap: 8px; margin-left: 8px; color: #b5bac1; font-size: 11px; }
+.talk-message-time { color: #949ba4; }
+.talk-reply-button { padding: 0; color: #b5bac1; background: transparent; border: 0; font: inherit; cursor: pointer; }
+.talk-reply-button:hover { color: #fff; text-decoration: underline; }
+.talk-message-reply { display: block; margin: 5px 0 6px; padding: 4px 8px; border-left: 2px solid #5865f2; color: #c9cbd0; background: #0002; font-size: 12px; }
+.talk-message-image { display: block; max-width: min(360px, 100%); max-height: 260px; margin-top: 8px; border-radius: 6px; object-fit: contain; }
+.talk-replying { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 18px 8px; padding: 8px 10px; color: #dbdee1; background: rgba(56, 58, 64, 0.75); border-left: 3px solid #5865f2; font-size: 12px; }
+.talk-replying[hidden] { display: none; }
+.talk-replying button { color: inherit; background: transparent; border: 0; font-size: 18px; cursor: pointer; }
+.talk-compose { display: flex; gap: 10px; margin: 0 18px 18px; padding: 10px; background: rgba(56, 58, 64, 0.75); border-radius: 8px; }
 .talk-compose input {
     flex: 1;
     min-width: 0;
@@ -803,7 +814,9 @@ body { --wave-accent: #68fcfe; }
     font: inherit;
     cursor: pointer;
 }
-.talk-compose button:hover { background: #4752c4; }
+ .talk-compose button:hover { background: #4752c4; }
+.talk-compose #talk-image-button { flex: 0 0 auto; padding: 5px 10px; background: #4a4d55; font-size: 20px; line-height: 1; }
+.talk-compose #talk-image-button:hover { background: #5a5d66; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 
 @media (max-width: 600px) {
@@ -815,7 +828,9 @@ body { --wave-accent: #68fcfe; }
     .talk-header { padding: 10px; }
     .talk-header button { padding: 6px; }
     .talk-messages { padding: 14px 10px; }
-    .talk-compose { margin: 0 8px 10px; }
+         .talk-compose { margin: 0 8px 10px; }
+     .talk-replying { margin: 0 8px 8px; }
+     .talk-message-image { max-height: 200px; }
 }
 
 .login-panel {
