@@ -231,6 +231,10 @@ const talkOnlineList = document.querySelector('#talk-online-list')
 const talkOnlineCount = document.querySelector('#talk-online-count')
 const talkForm = document.querySelector('#talk-form')
 const talkInput = document.querySelector('#talk-input')
+const talkImageInput = document.querySelector('#talk-image-input')
+const talkReplying = document.querySelector('#talk-replying')
+const talkReplyingLabel = document.querySelector('#talk-replying-label')
+let pendingTalkReply = null
 const updatesOverlay = document.querySelector('#updates-overlay')
 const updatesLog = document.querySelector('#updates-log')
 const archivesOverlay = document.querySelector('#archives-overlay')
@@ -470,8 +474,6 @@ async function submitUIDRequest() {
             ? `UID request rejected by Firebase rules (${code}). No request was saved; check the approvalRequests write rule.`
             : `Could not submit UID (${code}): ${error.message}. Retrying in 5 seconds.`
 
-        // Do not write to people/{uid} as a fallback: that is a different record
-        // and could create a misleading pending entry or overwrite approval data.
         if (!isPermissionDenied) scheduleUIDRequestRetry()
     } finally {
         uidRequestInProgress = false
@@ -534,6 +536,21 @@ async function initializeSiteAccess() {
 
 accessRetry.addEventListener('click', initializeSiteAccess)
 accessSubmit.addEventListener('click', submitUIDRequest)
+document.querySelector('#talk-image-button').addEventListener('click', () => talkImageInput.click())
+document.querySelector('#talk-reply-cancel').addEventListener('click', () => {
+    pendingTalkReply = null
+    talkReplying.hidden = true
+})
+talkImageInput.addEventListener('change', () => {
+    const file = talkImageInput.files?.[0]
+    if (file && !file.type.startsWith('image/')) {
+        talkStatus.textContent = 'Choose an image file.'
+        talkImageInput.value = ''
+    } else if (file && file.size > 1_500_000) {
+        talkStatus.textContent = 'Images must be 1.5 MB or smaller.'
+        talkImageInput.value = ''
+    }
+})
 
 function makeTalkLine(message, own = false) {
     const line = document.createElement('li')
@@ -543,9 +560,54 @@ function makeTalkLine(message, own = false) {
     uidLabel.className = 'talk-online-uid'
     uidLabel.textContent = message.uid ? `[${message.uid.slice(0, 8)}] ` : ''
     if (message.uid) uidLabel.style.color = colorForUid(message.uid)
-    const text = document.createElement('span')
-    text.textContent = message.text
-    line.append(name, uidLabel, text)
+    line.append(name, uidLabel)
+
+    if (message.reply && typeof message.reply === 'object') {
+        const quote = document.createElement('span')
+        quote.className = 'talk-message-reply'
+        quote.textContent = `Replying to ${message.reply.name || 'Guest'}: ${message.reply.text || 'Image'}`
+        line.append(quote)
+    }
+
+    if (typeof message.text === 'string' && message.text) {
+        const text = document.createElement('span')
+        text.textContent = message.text
+        line.append(text)
+    }
+    if (typeof message.image === 'string' && /^data:image\/(?:png|jpeg|gif|webp);base64,/i.test(message.image)) {
+        const image = document.createElement('img')
+        image.className = 'talk-message-image'
+        image.src = message.image
+        image.alt = 'Image attachment'
+        line.append(image)
+    }
+
+    const meta = document.createElement('span')
+    meta.className = 'talk-message-meta'
+    const sentAt = Number(message.createdAt)
+    if (Number.isFinite(sentAt) && sentAt > 0) {
+        const timestamp = document.createElement('time')
+        timestamp.className = 'talk-message-time'
+        timestamp.dateTime = new Date(sentAt).toISOString()
+        timestamp.textContent = new Date(sentAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        meta.append(timestamp)
+    }
+    const replyButton = document.createElement('button')
+    replyButton.type = 'button'
+    replyButton.className = 'talk-reply-button'
+    replyButton.textContent = 'Reply'
+    replyButton.addEventListener('click', () => {
+        pendingTalkReply = {
+            uid: message.uid || '',
+            name: message.name || (own ? person : 'Guest'),
+            text: message.text || 'Image',
+        }
+        talkReplyingLabel.textContent = `Replying to ${pendingTalkReply.name}: ${pendingTalkReply.text}`
+        talkReplying.hidden = false
+        talkInput.focus()
+    })
+    meta.append(replyButton)
+    line.append(meta)
     return line
 }
 
@@ -595,11 +657,11 @@ async function initializeChat() {
             chatDatabase.ref(`talk/dms/${chatUser.uid}`).on('child_added', snapshot => {
                 const message = snapshot.val()
                 const senderUid = typeof message?.uid === 'string' ? message.uid : ''
-                if (senderUid && senderUid !== chatUser.uid && typeof message.text === 'string') {
+                if (senderUid && senderUid !== chatUser.uid && (typeof message.text === 'string' || typeof message.image === 'string')) {
                     storeDMMessage(senderUid, {
+                        ...message,
                         uid: senderUid,
                         name: message.name || 'Guest',
-                        text: message.text,
                         own: false,
                     })
                 }
@@ -616,7 +678,7 @@ async function initializeChat() {
 
         function createTalkMessageLine(snapshot) {
             const message = snapshot.val()
-            if (!message || typeof message.text !== 'string') return null
+            if (!message || (typeof message.text !== 'string' && typeof message.image !== 'string')) return null
             const uid = typeof message.uid === 'string' ? message.uid : ''
             const line = makeTalkLine({ ...message, uid })
             return { line, message, uid }
@@ -851,7 +913,7 @@ const SETTING_CATEGORIES = [
         settings: [
             { key: 'siteFont', label: 'Site font', description: 'Choose the main typeface used across the site.', type: 'select', options: [['auto', 'Use UI default'], ['serif', 'Classic serif'], ['sans', 'Sans serif'], ['mono', 'Monospace'], ['impact', 'Impact display']] },
             { key: 'menuFontSize', label: 'Main menu text size', description: 'Set the main navigation text size in pixels.', type: 'range', min: 20, max: 64, suffix: 'px' },
-            { key: 'panelOpacity', label: 'Panel opacity', description: 'Adjust the settings, archives, and update panel backgrounds.', type: 'range', min: 35, max: 100, suffix: '%' },
+            { key: 'panelOpacity', label: 'Panel opacity', description: 'Adjust the settings, archives, and update panel backgrounds.', type: 'range', min: 0, max: 100, suffix: '%' },
             { key: 'cornerRadius', label: 'Panel corner radius', description: 'Round the corners of dialogs and panels.', type: 'range', min: 0, max: 28, suffix: 'px' },
             { key: 'backdropBlur', label: 'Settings backdrop blur', description: 'Blur the page behind the Settings panel.', type: 'range', min: 0, max: 20, suffix: 'px' },
             { key: 'customCss', label: 'Custom CSS', description: 'Advanced: write site-wide CSS overrides. Stored only in this browser.', type: 'textarea' },
@@ -1036,12 +1098,18 @@ const USERS = [
     },
     
     
-    
-    
     {
         person: 'grant',
         pass:   'granted',
         nickname: 'Don Quixote',
+    
+    
+    },
+    
+    {
+        person: 'unreal',
+        pass:   'personeating37',
+        nickname: 'Roland from library of ruina',
     
     },
     
@@ -1061,9 +1129,12 @@ const USERS = [
     
     
     
+    {
+        person: 'clinton',
+        pass:   'chessboy',
+        nickname: 'clinton',
     
-    
-    
+    },
      {
         person: 'sov',
         pass:   'trabajador',
@@ -1073,7 +1144,7 @@ const USERS = [
     {
         person: 'kayden',
         pass:   'dallas',
-        nickname: 'kaydan',
+        nickname: 'kayden',
     },
     
     
@@ -1310,15 +1381,53 @@ const METHODS_LIST = [
     },
     {
         title: 'Super Star Car',
-        description: 'ram into stuff and like win race or something',
+        description: 'ram into stuff and like win race o algo',
         opacity: 0.5,
         rotation: '3deg',
         fetcher: `${trivoURLlink}/files/SSC.html`,
     },
-    
-    
-    
-    
+    {
+        title: 'Age of Conflict',
+        description: 'yes yes force the hate on all...',
+        opacity: 0.5,
+        rotation: '3deg',
+        fetcher: `${trivoURLlink}/files/AOF_1.html`,
+    },
+    {
+        title: 'How To Fish',
+        description: 'FISH DOWNED FISH DOWNED 50x BONUS',
+        opacity: 0.65,
+        rotation: '5deg',
+        fetcher: `${trivoURLlink}/files/HTOF_1.html`,
+    },
+    {
+        title: 'One Shot: World Edition',
+        description: ' You only have one shot. ',
+        opacity: 0.6,
+        rotation: '5deg',
+        fetcher: `${trivoURLlink}/files/OSWE_1.html`,
+    },
+    {
+        title: 'A Dance of Fire and Ice.',
+        description: 'this is the rhythm of the night',
+        opacity: 0.8,
+        rotation: '-2deg',
+        fetcher: `${trivoURLlink}/files/ADO.html`,
+    },
+    {
+        title: 'Moto X3M: Winter',
+        description: 'Backflip 3x! oh you exploded mihaha',
+        opacity: 0.5,
+        rotation: '2deg',
+        fetcher: `${trivoURLlink}/files/X3M_W.html`,
+    },
+    {
+        title: 'The Oregon Trail',
+        description: 'stupid got sick lolololo',
+        opacity: 0.7,
+        rotation: '-3deg',
+        fetcher: `${trivoURLlink}/files/oregon.html`,
+    },
     
     
     
@@ -1379,7 +1488,7 @@ const ARCHIVE_PAGES = [
     },
     {
         title: 'Summit Middle School (8TH GRADE)',
-        paragraphs: ['template'],
+        paragraphs: [''],
     },
    
 ]
@@ -1391,10 +1500,11 @@ const ARCHIVE_PAGES = [
 
 
 const UPDATE_LOG = [ 
+        { text: 'SONGS ADDED Styx Helix, Rendevous, and iron lotus. color theme customization feature, Feedback button at the bottom right, Font library. Wallpaper library. Fixed memory leaks. Idle for 3 minutes does something, Fix socials tab from not showing anything, Reconfirm closing before actually closing tabUpdate WAVE//TALK to have a transparent background. feature to send images and reply to texts, shows what time a message was sent', color: '#a8e6cf' },
         { text: 'Version 4.9, reworked settings, tried to add a queue system for quicker loading if your using the classic wave style, now pressing SHIFT + ` makes the screen appear blank. The revelation starts', color: '#a8e6cf' },
-    { text: 'Version 4.8, reworked Talk UI with a public UI, added dms, made local option for debugging, settings made, ', color: '#a8e6cf' },
-    { text: 'Version 4.7, fixed a fatal bug ', color: '#a8e6cf' },
-    { text: 'Version 4.6, Talk refined, reforemd the theme channel, added like 2 more people cuz yes.', color: '#a8e6cf' },
+    { text: 'Version 4.8, reworked Talk UI with a public UI, added dms, made local option for debugging, settings made, ', color: '#ffb6d9' },
+    { text: 'Version 4.7, fixed a fatal bug ', color: '#d7b6ff' },
+    { text: 'Version 4.6, Talk refined, reforemd the theme channel, added like 2 more people cuz yes.', color: '#ffb6d9' },
     { text: 'Version 4.5, The Security and Talk update, self explainatory', color: '#a8e6cf' },
     { text: 'Version 4.4, added two games, bug fixed', color: '#d7b6ff' },
         { text: 'Version 4.3, Added five games and added page function for Methods, fixed no bugs', color: '#d7b6ff' },
@@ -1450,7 +1560,6 @@ let openMethodsAfterLogin = false
 bgMusic.volume = 1
 
 body.addEventListener('click', () => {
-    document.body.requestFullscreen()
     if (settings.uiStyle !== 'merged' && !videoWrapper.classList.contains('custom-background')) video.play().catch(() => {})
 
     welcomeWrapper.classList.add('ok')
@@ -1541,12 +1650,14 @@ function insertListItens() {
 }
 
 
-const SOCIAL_LINKS = ['goldendarkness1312@gmail.com','vohdidoo@gmail', 'DISCOR-D: itmissmyfriendstrivo']
+const SOCIAL_LINKS = ["goldendarkness1312@gmail.com","vohdidoo@gmail", "DISCOR-D: itmissmyfriendstrivo"]
 const SITE_RULES = [
-    'Use the site and linked content responsibly and follow applicable terms.',
-    'Respect other people in Talk; do not harass, spam, or share private information.',
+    'Follow TOS',
+    'Respect other people in Talk; do not harass, spam, or disclose private information.',
     'Do not distribute or copy the site without the creator’s permission and credit.',
     'Choose an appropriate time and place to use the site.',
+    'Do not reveal any users name.',
+    'Swearing is allowed if it isnt directed at a user.',
 ]
 
 function showInfo(kind) {
@@ -1989,7 +2100,8 @@ function initMenuLinkOver() {
     talkForm.addEventListener('submit', async event => {
         event.preventDefault()
         const text = talkInput.value.trim()
-        if (!text) return
+        const file = talkImageInput.files?.[0]
+        if (!text && !file) return
         if (!chatUser || !chatDatabase) {
             talkStatus.textContent = 'Chat is still connecting. Try again in a moment.'
             return
@@ -1997,29 +2109,42 @@ function initMenuLinkOver() {
 
         talkStatus.textContent = 'Sending…'
         try {
+            let image = ''
+            if (file) {
+                if (!file.type.startsWith('image/') || file.size > 1_500_000) {
+                    talkStatus.textContent = 'Choose an image up to 1.5 MB.'
+                    return
+                }
+                image = await new Promise((resolve, reject) => {
+                    const reader = new FileReader()
+                    reader.onload = () => resolve(reader.result)
+                    reader.onerror = () => reject(new Error('Could not read image file.'))
+                    reader.readAsDataURL(file)
+                })
+            }
+            const message = {
+                uid: chatUser.uid,
+                name: person,
+                text,
+                ...(image ? { image } : {}),
+                ...(pendingTalkReply ? { reply: pendingTalkReply } : {}),
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+            }
             if (activeDM) {
                 const recipient = activeDM
-                await chatDatabase.ref(`talk/dms/${recipient.uid}`).push({
-                    uid: chatUser.uid,
-                    name: person,
-                    text,
-                    createdAt: firebase.database.ServerValue.TIMESTAMP,
-                })
+                await chatDatabase.ref(`talk/dms/${recipient.uid}`).push(message)
                 storeDMMessage(recipient.uid, {
-                    uid: chatUser.uid,
-                    name: person,
-                    text,
+                    ...message,
+                    createdAt: Date.now(),
                     own: true,
                 })
             } else {
-                await chatDatabase.ref('talk/messages').push({
-                    uid: chatUser.uid,
-                    name: person,
-                    text,
-                    createdAt: firebase.database.ServerValue.TIMESTAMP,
-                })
+                await chatDatabase.ref('talk/messages').push(message)
             }
             talkInput.value = ''
+            talkImageInput.value = ''
+            pendingTalkReply = null
+            talkReplying.hidden = true
             talkMessages.scrollTop = talkMessages.scrollHeight
             talkStatus.textContent = 'Connected'
         } catch (error) {
@@ -2137,7 +2262,14 @@ const batteryBar = document.querySelector('.battery-bar')
 const batteryFill = document.querySelector('#battery-fill')
 
 function updateClock() {
-    siteClock.textContent = new Date().toLocaleTimeString()
+    const shiftedNow = new Date(Date.now() + 2 * 60 * 60 * 1000)
+    siteClock.textContent = shiftedNow.toLocaleTimeString()
+
+    const nextTarget = new Date(shiftedNow)
+    nextTarget.setHours(15, 15, 0, 0)
+    if (nextTarget <= shiftedNow) nextTarget.setDate(nextTarget.getDate() + 1)
+    const minutesLeft = Math.ceil((nextTarget - shiftedNow) / 60000)
+    document.querySelector('#clock-countdown').textContent = `3:15 in ${minutesLeft} min`
 }
 
 updateClock()
