@@ -454,7 +454,7 @@
 
                 // FIX: removed the stray space in every `${...}`
                 document.querySelector(".welcome-wrapper img").src =
-                    `${welcomeAssetBase}/gh/trivo191919/wallahi-dream-girl@latest/wave.jpg`;
+                    `${welcomeAssetBase}/gh/trivo191919/wallahi-dream-girl@main/wave.jpg`;
 
                 document.querySelector("#video source").src =
                     `${videoAssetBase}/gh/emanoelqueiroz/persona-3-menu@5427ccb58d7a3617704e16aedaf196b942b88162/videos/bg-video-1.mp4`;
@@ -465,7 +465,7 @@
                 button.disabled = true;
                 button.textContent = "Loading...";
 
-                const assetBase = welcomeBase ? `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@latest/` : "";
+                const assetBase = welcomeBase ? `${welcomeBase}/gh/trivo191919/wallahi-dream-girl@main/` : "";
                 const stylesheetStatus = document.querySelector("#stylesheet-status");
                 const scriptStatus = document.querySelector("#script-status");
                 const isCdnSource = Boolean(welcomeBase);
@@ -488,7 +488,7 @@
 
                 const appScript = document.createElement("script");
                 appScript.src = isCdnSource
-                    ? `${welcomeAssetBase}/gh/trivo191919/wallahi-dream-girl@latest/${jsName}`
+                    ? `${welcomeAssetBase}/gh/trivo191919/wallahi-dream-girl@main/${jsName}`
                     : jsName;
                 appScript.onload = () => {
                     scriptLoaded = true;
