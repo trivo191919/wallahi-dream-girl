@@ -339,7 +339,16 @@ function notifyTalkMessage(message, key) {
     })
 }
 
+function hasUidBypass() {
+    return Boolean(window.WAVE_DEV?.uidBypass)
+}
+
 function syncAccessGate() {
+    if (hasUidBypass()) {
+        siteAccessApproved = true
+        accessGate.hidden = true
+        return
+    }
     accessGate.hidden = siteAccessApproved || !sourceSetupPanel.hidden
 }
 
@@ -425,6 +434,11 @@ function showUIDVerification(uid, snapshot, error = '') {
 
 let approvalCheckInProgress = false
 async function verifySiteAccess() {
+    if (hasUidBypass()) {
+        siteAccessApproved = true
+        syncAccessGate()
+        return
+    }
     if (!chatUser || siteAccessApproved || approvalCheckInProgress) return
     approvalCheckInProgress = true
     try {
@@ -482,6 +496,13 @@ async function submitUIDRequest() {
 }
 
 async function initializeSiteAccess() {
+    if (hasUidBypass()) {
+        siteAccessApproved = true
+        accessRetry.hidden = true
+        accessSubmit.hidden = true
+        syncAccessGate()
+        return
+    }
     accessRetry.hidden = true
     accessSubmit.hidden = true
     if (!uidRequestSubmitted) accessStatus.textContent = 'Checking your approval…'
@@ -500,6 +521,13 @@ async function initializeSiteAccess() {
         if (!approvalListenerStarted) {
             approvalListenerStarted = true
                         approvalRef.on('value', snapshot => {
+                if (hasUidBypass()) {
+                    siteAccessApproved = true
+                    accessStatus.textContent = 'Access approved'
+                    accessRetry.hidden = true
+                    syncAccessGate()
+                    return
+                }
                 const approval = snapshot.val()
                 siteAccessApproved = isUIDApproved(approval, chatUser.uid)
                 showUIDVerification(chatUser.uid, snapshot)
@@ -512,6 +540,11 @@ async function initializeSiteAccess() {
                 syncAccessGate()
             }, error => {
                 approvalListenerStarted = false
+                if (hasUidBypass()) {
+                    siteAccessApproved = true
+                    syncAccessGate()
+                    return
+                }
                 siteAccessApproved = false
                 showUIDVerification(chatUser.uid, null, error.message)
                 accessStatus.textContent = `Could not check approval: ${error.message}`
@@ -791,8 +824,23 @@ async function initializeAnnouncements() {
     })
 }
 
-const MUSIC_OPTIONS = [
+const MUSIC_OPTIONS = [ 
     //it goes from 0 1 2 3 4
+    {
+        title: 'Rendevous (Mili)',
+        description: 'Why are you so desperate, for control?',
+        url: `${trivoURLlink}/song/Mili%20-%20Rendezvous%20[Limbus%20Company].mp3`,
+    },
+    {
+        title: 'Styx Helix(Instrumental)',
+        description: 'Oh, please don’t let me die',
+        url: `${trivoURLlink}/song/STYX%20HELIX%EF%BC%88instrumental%EF%BC%89.mp3`,
+    },
+    {
+        title: 'Iron Lotus (Instrumental)',
+        description: 'I AM FIRE, BURN THOSE WHO DARE TO CARE FOR ME',
+        url: `${trivoURLlink}/song/Library%20of%20Ruina%20-%20Iron%20Lotus%20(Instrumental).mp3`,
+    },
     {
         title: 'Threats Of The Ocean Sea',
         description: 'Primordial Wyrm as awakened!',
@@ -830,7 +878,7 @@ const MUSIC_OPTIONS = [
     },
 ]
 
-const bgMusic = new Audio(MUSIC_OPTIONS[1].url)
+const bgMusic = new Audio(MUSIC_OPTIONS[0].url)
 
 const ADVANCED_STYLE_DEFAULTS = {
     siteFont: 'auto',
@@ -1018,6 +1066,49 @@ panicScreen.addEventListener('click', event => event.stopPropagation())
 let panicActive = false
 let panicMediaState = null
 let focusBeforePanic = null
+const normalPageTitle = document.title
+let idleTimer
+
+function activatePanic() {
+    if (panicActive) return
+    panicActive = true
+    focusBeforePanic = document.activeElement
+    panicMediaState = { music: !bgMusic.paused, video: !video.paused }
+    document.title = 'about:blank'
+    panicScreen.style.setProperty('display', 'block', 'important')
+    bgMusic.pause()
+    audio.pause()
+    video.pause()
+    document.querySelectorAll('audio, video').forEach(media => media.pause())
+    panicScreen.focus()
+}
+
+function deactivatePanic() {
+    if (!panicActive) return
+    panicActive = false
+    panicScreen.style.setProperty('display', 'none', 'important')
+    document.title = normalPageTitle
+    focusBeforePanic?.focus?.()
+    if (panicMediaState?.music) bgMusic.play().catch(() => {})
+    if (panicMediaState?.video) video.play().catch(() => {})
+    panicMediaState = null
+    resetIdleTimer()
+}
+//timer for idling
+function resetIdleTimer() {
+    clearTimeout(idleTimer)
+    if (!panicActive) idleTimer = setTimeout(activatePanic, 2 * 60 * 1000)
+}
+
+resetIdleTimer()
+;['pointerdown', 'pointermove', 'keydown', 'touchstart', 'scroll'].forEach(eventName => {
+    document.addEventListener(eventName, resetIdleTimer, { passive: true })
+})
+document.addEventListener('contextmenu', event => event.preventDefault())
+window.addEventListener('beforeunload', event => {
+    event.preventDefault()
+    event.returnValue = ''
+})
 
 document.addEventListener('keydown', event => {
     const isPanicShortcut = event.shiftKey && (event.code === 'Backquote' || event.key === '~') && !event.ctrlKey && !event.altKey && !event.metaKey
@@ -1025,21 +1116,8 @@ document.addEventListener('keydown', event => {
         event.preventDefault()
         event.stopImmediatePropagation()
         if (event.repeat) return
-        panicActive = !panicActive
-        panicScreen.style.setProperty('display', panicActive ? 'block' : 'none', 'important')
-        if (panicActive) {
-            focusBeforePanic = document.activeElement
-            panicMediaState = { music: !bgMusic.paused, video: !video.paused }
-            bgMusic.pause()
-            audio.pause()
-            video.pause()
-            panicScreen.focus()
-        } else {
-            focusBeforePanic?.focus?.()
-            if (panicMediaState?.music) bgMusic.play().catch(() => {})
-            if (panicMediaState?.video) video.play().catch(() => {})
-            panicMediaState = null
-        }
+        if (panicActive) deactivatePanic()
+        else activatePanic()
     } else if (panicActive) {
         event.preventDefault()
         event.stopImmediatePropagation()
@@ -1113,7 +1191,12 @@ const USERS = [
     
     },
     
+    {
+        person: 'furrynando',
+        pass:   'gd_boy',
+        nickname: 'femboynando',
     
+    },
     
     
     
@@ -1276,7 +1359,7 @@ const MENU_LINKS = [
 const METHODS_LIST = [
     {
         title: 'WATERWORKS',
-        description: 'water go civil',
+        description: 'go civil',
         opacity: 1,
         rotation: '-3deg',
         fetcher: `${trivoURLlink}/files/water.html`,
@@ -1427,6 +1510,13 @@ const METHODS_LIST = [
         opacity: 0.7,
         rotation: '-3deg',
         fetcher: `${trivoURLlink}/files/oregon.html`,
+    },
+    {
+        title: 'Basketball Random',
+        description: 'bro i cant remove the startup ad smh',
+        opacity: 0.7,
+        rotation: '-3deg',
+        fetcher: `${trivoURLlink}/files/Bask.html`,
     },
     
     
@@ -2034,6 +2124,21 @@ function finishLogin(user, showStatus = true) {
     }
 }
 
+function applyDevConsoleBypass() {
+    if (!hasUidBypass()) return
+    siteAccessApproved = true
+    clearTimeout(uidRequestRetryTimer)
+    uidRequestRetryTimer = null
+    accessRetry.hidden = true
+    accessSubmit.hidden = true
+    syncAccessGate()
+    const username = window.WAVE_DEV.autoLogin
+    const user = USERS.find(account => account.person === username)
+    if (user) finishLogin(user)
+}
+
+window.addEventListener('wave-dev-command', applyDevConsoleBypass)
+
 function restoreSavedLogin() {
     let savedPerson = ''
     try { savedPerson = localStorage.getItem('wave-saved-user') || '' } catch {}
@@ -2154,6 +2259,8 @@ function initMenuLinkOver() {
 
     document.addEventListener('keydown', (e) => {
         if (!siteAccessApproved) return
+        if (!document.querySelector('#dev-console')?.hidden) return
+        if (e.target.closest('input, textarea, select, [contenteditable]')) return
         if (e.key === 'Escape' && !loginPanel.hidden) {
             loginPanel.hidden = true
             openMethodsAfterLogin = false
@@ -2207,6 +2314,8 @@ function initMenuLinkOver() {
 
     document.addEventListener('keydown', (e) => {
         if (!siteAccessApproved) return
+        if (!document.querySelector('#dev-console')?.hidden) return
+        if (e.target.closest('input, textarea, select, [contenteditable]')) return
         if (['archives', 'talk', 'updates', 'settings', 'socials', 'rules'].includes(currentList)) return
         if (loginPanel.hidden && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()
@@ -2260,6 +2369,31 @@ const siteClock = document.querySelector('#site-clock')
 const batteryLabel = document.querySelector('#battery-label')
 const batteryBar = document.querySelector('.battery-bar')
 const batteryFill = document.querySelector('#battery-fill')
+const gpuLabel = document.querySelector('#gpu-label')
+const gpuBar = document.querySelector('.gpu-bar')
+const gpuFill = document.querySelector('#gpu-fill')
+
+function updateGpuStatus() {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    if (!gl) {
+        gpuLabel.textContent = 'GPU acceleration: unavailable'
+        gpuFill.style.width = '0%'
+        gpuBar.setAttribute('aria-valuenow', '0')
+        return
+    }
+
+    let renderer = 'WebGL available'
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
+    if (debugInfo) renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || renderer
+    gpuLabel.textContent = 'GPU acceleration: available'
+    gpuLabel.title = renderer
+    gpuFill.style.width = '100%'
+    gpuBar.setAttribute('aria-valuenow', '100')
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+}
+
+updateGpuStatus()
 
 function updateClock() {
     const shiftedNow = new Date(Date.now() + 2 * 60 * 60 * 1000)
@@ -2297,6 +2431,7 @@ if (navigator.getBattery) {
 insertListItens()
 initMenuLinkOver()
 restoreSavedLogin()
+applyDevConsoleBypass()
 initializeSiteAccess()
 setInterval(verifySiteAccess, 5000)
 initializeAnnouncements().catch(error => {
