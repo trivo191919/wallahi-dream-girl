@@ -106,6 +106,30 @@ main.show {
 }
 #site-clock { font-size: 22px; }
 #clock-countdown { font-size: 13px; }
+.gpu-status {
+    position: fixed;
+    z-index: 2;
+    top: 104px;
+    left: 18px;
+    width: min(220px, calc(100vw - 36px));
+    color: #fff;
+    font: bold 13px Arial, Helvetica, sans-serif;
+    text-shadow: 1px 2px #000;
+}
+.gpu-bar {
+    height: 12px;
+    margin-top: 5px;
+    overflow: hidden;
+    border: 2px solid #fff;
+    background: #0009;
+    box-shadow: 2px 2px 0 #000;
+}
+.gpu-fill {
+    width: 0;
+    height: 100%;
+    background: #fff;
+    transition: width 300ms ease;
+}
 .battery-bar {
     position: fixed;
     z-index: 2;
@@ -1245,7 +1269,7 @@ body.passion-one-bold { font-family: var(--settings-site-font, "Times New Roman"
 }
 .video-wrapper.custom-background #video,
 .settings-merged-ui .video-wrapper.custom-background::after { display: none; }
-.battery-bar[hidden], #battery-label[hidden], #site-clock[hidden] { display: none; }
+ .battery-bar[hidden], #battery-label[hidden], #site-clock[hidden] { display: none; }
 
 /* Optional interface palettes. */
 body[data-theme='ocean'] { --theme-highlight: #79e2ed; --theme-dark: #07232d; }
